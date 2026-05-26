@@ -9,3 +9,9 @@ coverage/
 npm-debug.log*
 yarn-debug.log*
 package-lock.json
+__pycache__/
+*.pyc
+*.pyo
+.env
+backend/.pytest_cache/
+backend/.ruff_cache/
