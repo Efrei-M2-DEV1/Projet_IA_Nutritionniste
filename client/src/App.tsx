@@ -33,9 +33,16 @@ function App() {
 
   const refreshHistory = () => setHistory(getHistory());
 
+  const recheckBackend = () => {
+    checkBackendHealth().then(setBackendOnline);
+  };
+
   useEffect(() => {
     refreshHistory();
-    checkBackendHealth().then(setBackendOnline);
+    recheckBackend();
+    const onFocus = () => recheckBackend();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
   }, []);
 
   const handleImageSelect = async (file: File, preview: string) => {
@@ -253,14 +260,23 @@ function App() {
         {backendOnline === false && currentView === "upload" && (
           <div className="mx-4 mt-4 mb-2 bg-amber-50 border border-amber-300 rounded-xl p-4">
             <p className="text-sm text-amber-900 font-medium">
-              Backend hors ligne. Terminal :{" "}
+              Backend non détecté. Gardez uvicorn actif (terminal 1), lancez le
+              front dans un <strong>2ᵉ terminal</strong> :{" "}
               <code className="text-xs bg-amber-100 px-1 rounded">
-                cd backend &amp;&amp; uvicorn app.main:app --reload --port 8000
+                cd client &amp;&amp; npm run dev
               </code>
-              <span className="block mt-1 text-xs text-amber-800">
-                Puis relancez le front ({getApiBaseUrl()}).
-              </span>
             </p>
+            <p className="text-xs text-amber-800 mt-2">
+              Ne pas utiliser <code>npm run dev</code> à la racine (ancien serveur
+              Node). API : {getApiBaseUrl()}
+            </p>
+            <button
+              type="button"
+              onClick={recheckBackend}
+              className="mt-3 text-sm font-semibold text-amber-900 underline"
+            >
+              Réessayer la connexion
+            </button>
           </div>
         )}
 

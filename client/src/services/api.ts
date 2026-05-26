@@ -7,6 +7,15 @@ import { loadHealthProfile } from "./healthProfile";
  * En prod ou sans proxy : VITE_API_URL=http://localhost:8000
  */
 function resolveApiBaseUrl(): string {
+  // Front en HTTPS (Vite) → toujours le proxy, sinon mixed content si .env pointe vers :8000
+  if (
+    import.meta.env.DEV &&
+    typeof window !== "undefined" &&
+    window.location.protocol === "https:"
+  ) {
+    return "";
+  }
+
   const fromEnv = import.meta.env.VITE_API_URL;
   if (fromEnv !== undefined && fromEnv !== "") {
     return fromEnv.replace(/\/$/, "");

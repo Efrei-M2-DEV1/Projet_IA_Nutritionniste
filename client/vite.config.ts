@@ -1,9 +1,10 @@
-import basicSsl from "@vitejs/plugin-basic-ssl";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+// HTTP en local (http://localhost:5173) — évite mixed content avec le backend :8000
+// Pour la caméra mobile en HTTPS : npm run dev:https (voir package.json)
 export default defineConfig({
-  plugins: [react(), basicSsl()],
+  plugins: [react()],
   server: {
     host: true,
     proxy: {
