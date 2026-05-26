@@ -1,0 +1,24 @@
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+pydantic>=2.7.0
+pydantic-settings>=2.2.0
+python-dotenv>=1.0.1
+
+# ── IA — décommentez selon l'option choisie ──────────────────────────────────
+# Option A : Hugging Face (vision locale)
+# transformers>=4.40.0
+# torch>=2.3.0
+# Pillow>=10.3.0
+
+# Option B : API Vision externe
+# openai>=1.30.0       # GPT-4o Vision
+# mistralai>=1.0.0     # Pixtral
+
+# Option C : Anthropic Claude
+# anthropic>=0.26.0
+
+# ── Tests ─────────────────────────────────────────────────────────────────────
+httpx>=0.27.0
+pytest>=8.2.0
+pytest-asyncio>=0.23.6
