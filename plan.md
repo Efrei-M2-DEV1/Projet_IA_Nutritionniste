@@ -392,12 +392,4 @@ Code propre, gestion d’erreurs, pas de secrets dans le dépôt. Documentation 
 
 ---
 
-## 14. Issues GitHub (import automatique)
-
-Un fichier **`.github/issues.json`** (37 tâches) + le workflow **Import project issues** permettent de créer toutes les issues en une fois.
-
-**Mode d’emploi :** voir [`docs/IMPORT_ISSUES_GITHUB.md`](./IMPORT_ISSUES_GITHUB.md)
-
----
-
 *Document généré pour le groupe — à mettre à jour au fil du projet.*

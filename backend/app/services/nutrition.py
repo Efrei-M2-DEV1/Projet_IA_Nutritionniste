@@ -52,6 +52,8 @@ HIGH_CARB_KEYWORDS = ["riz", "pâtes", "pasta", "pain", "pizza", "pomme de terre
 
 HIGH_SODIUM_KEYWORDS = ["pizza", "charcuterie", "jambon", "soupe", "fromage", "sauce soja"]
 
+GLUTEN_KEYWORDS = ["gluten", "pâtes", "pasta", "pain", "pizza", "lasagne", "lasagnes", "semoule"]
+
 PORK_KEYWORDS = ["porc", "jambon", "lard", "bacon", "saucisse"]
 
 KOSHER_SHELLFISH_KEYWORDS = ["crevette", "crabe", "homard", "crustacé", "moule", "calmar", "poulpe"]
@@ -131,14 +133,61 @@ def _build_warnings(foods: list[dict], profile: Optional[dict]) -> list[str]:
     warnings: list[str] = []
     if not profile:
         return warnings
-    allergens: list[str] = [a.lower() for a in profile.get("allergens", [])]
-    food_names = [f["name"].lower() for f in foods]
-    for food in food_names:
+
+    allergens: list[str] = [_normalize(a) for a in profile.get("allergens", [])]
+    diet = _normalize(str(profile.get("diet", "")))
+    food_names = _food_names_lower(foods)
+
+    for allergen in allergens:
+        keywords = GLUTEN_KEYWORDS if allergen == "gluten" else [allergen]
+        matched = _contains_keyword(food_names, keywords)
+        if matched:
+            warnings.append(f"Allergie possible : {matched} peut contenir {allergen}")
+
+    if profile.get("diabetes") and _contains_keyword(food_names, HIGH_CARB_KEYWORDS):
+        warnings.append("Attention diabète : glucides élevés — surveillance glycémique recommandée")
+
+    if profile.get("hypertension") and _contains_keyword(food_names, HIGH_SODIUM_KEYWORDS):
+        warnings.append("Attention hypertension : ce repas peut être riche en sel.")
+
+    if diet == "vegan":
+        matched = _contains_keyword(food_names, ANIMAL_KEYWORDS + VEGAN_EXTRA_KEYWORDS)
+        if matched:
+            warnings.append(f"Régime vegan : {matched} n'est probablement pas compatible.")
+
+    if diet == "vegetarian":
+        matched = _contains_keyword(food_names, ANIMAL_KEYWORDS)
+        if matched:
+            warnings.append(f"Régime végétarien : {matched} n'est probablement pas compatible.")
+
+    if diet == "halal":
+        matched = _contains_keyword(food_names, PORK_KEYWORDS)
+        if matched:
+            warnings.append(f"Régime halal : {matched} n'est probablement pas compatible.")
+
+    if diet == "kosher":
+        pork = _contains_keyword(food_names, PORK_KEYWORDS)
+        if pork:
+            warnings.append(f"Régime kosher : {pork} n'est pas compatible.")
+
+        shellfish = _contains_keyword(food_names, KOSHER_SHELLFISH_KEYWORDS)
+        if shellfish:
+            warnings.append(f"Régime kosher : {shellfish} n'est pas compatible.")
+
+        has_meat = _contains_keyword(food_names, KOSHER_MEAT_KEYWORDS)
+        has_dairy = _contains_keyword(food_names, KOSHER_DAIRY_KEYWORDS)
+        if has_meat and has_dairy:
+            warnings.append("Régime kosher : mélange viande et lait détecté.")
+
+    if diet == "gluten-free":
         for allergen in allergens:
-            if allergen in food:
-                warnings.append(f"Allergie possible : {food} contient {allergen}")
-    if profile.get("diabetes") and any("riz" in f or "pasta" in f or "pâtes" in f for f in food_names):
-        warnings.append("Attention : glucides élevés — surveillance glycémique recommandée")
+            if allergen == "gluten":
+                break
+        else:
+            matched = _contains_keyword(food_names, GLUTEN_KEYWORDS)
+            if matched:
+                warnings.append(f"Régime sans gluten : {matched} peut contenir du gluten.")
+
     return warnings
 
 

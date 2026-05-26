@@ -1,111 +1,43 @@
-# CI/CD Pipeline - Projet Web IA
+# CI/CD — Nutritionniste IA
 
-## 🔄 Workflows GitHub Actions
+## Workflows
 
-### 1. CI/CD Principal (`.github/workflows/ci-cd.yml`)
+### `ci-cd.yml`
 
-**Déclenchement** :
-- Push sur `main`, `dev`, ou branches `feature/**`
-- Pull Request vers `main` ou `dev`
+Workflow principal execute sur `main`, `dev`, `feat/**`, `feature/**` et pull requests.
 
-**Jobs** :
+Jobs :
 
-#### 📋 test-backend
-- Tests sur Node.js 18.x et 20.x
-- Exécution de la suite de tests complète
-- Upload de la couverture vers Codecov
-- Variables d'environnement requises : `MISTRAL_API_KEY`
+- Tests backend Python avec Python 3.11 et 3.12.
+- Lint backend via Ruff.
+- Build frontend React/Vite.
 
-#### 🏗️ build-backend
-- Build du backend après succès des tests
-- Génération des artifacts
-- Rétention : 7 jours
+### `deploy.yml`
 
-#### 🎨 test-frontend
-- Tests du frontend sur Node.js 18.x et 20.x
-- Linting et build
+Workflow manuel de verification Docker.
 
-#### 🔒 quality-checks
-- Audit de sécurité des dépendances
-- Vérification des dépendances obsolètes
+Il ne deploie pas automatiquement en production. Il sert a valider que les images Docker backend et client se construisent correctement avant une demo ou une mise en ligne.
 
-### 2. Déploiement (`.github/workflows/deploy.yml`)
+Lancement :
 
-**Déclenchement** :
-- Push sur `main`
-- Manuel via `workflow_dispatch`
+1. GitHub Actions.
+2. `Docker build verification`.
+3. `Run workflow`.
 
-**Étapes** :
-1. Tests complets
-2. Build de production
-3. Déploiement (à configurer selon votre plateforme)
+## Secrets optionnels
 
-## 🔑 Secrets GitHub requis
+Le projet fonctionne sans secret grace au fallback local.
 
-Configurez ces secrets dans **Settings → Secrets and variables → Actions** :
+Secrets utiles si un provider LLM est active :
 
-```
-MISTRAL_API_KEY         # Clé API Mistral AI
-CODECOV_TOKEN           # Token Codecov (optionnel)
+```text
+MISTRAL_API_KEY
+OPENAI_API_KEY
+HF_TOKEN
 ```
 
-Pour le déploiement (selon plateforme) :
-```
-HEROKU_API_KEY         # Si déploiement Heroku
-AZURE_CREDENTIALS      # Si déploiement Azure
-```
+## Notes
 
-## 📊 Badges de statut
-
-Ajoutez ces badges dans votre README principal :
-
-```markdown
-![CI/CD](https://github.com/VOTRE-ORG/Projet-Web-IA/workflows/CI%2FCD%20Backend/badge.svg)
-![Coverage](https://codecov.io/gh/VOTRE-ORG/Projet-Web-IA/branch/main/graph/badge.svg)
-```
-
-## 🚀 Configuration du déploiement
-
-### Heroku
-Décommentez et configurez dans `deploy.yml` :
-```yaml
-- name: Deploy to Heroku
-  uses: akhileshns/heroku-deploy@v3.13.15
-  with:
-    heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-    heroku_app_name: "votre-app-name"
-    heroku_email: "votre-email@example.com"
-    appdir: "server"
-```
-
-### Azure Web App
-Décommentez et configurez dans `deploy.yml` :
-```yaml
-- name: Deploy to Azure Web App
-  uses: azure/webapps-deploy@v2
-  with:
-    app-name: votre-app-name
-    publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-    package: server/dist
-```
-
-## 📝 Bonnes pratiques
-
-1. **Branches protégées** : Configurez les protections sur `main` et `dev`
-2. **Pull Requests** : Exigez la réussite des tests avant merge
-3. **Code Review** : Activez les revues obligatoires
-4. **Semantic Versioning** : Utilisez des tags pour les releases
-
-## 🐛 Dépannage
-
-### Les tests échouent en CI
-- Vérifiez que `MISTRAL_API_KEY` est configuré dans les secrets
-- Vérifiez les logs dans l'onglet Actions
-
-### Le build échoue
-- Vérifiez la version de Node.js
-- Assurez-vous que `package-lock.json` est commité
-
-### Déploiement bloqué
-- Vérifiez les secrets de déploiement
-- Consultez les logs du workflow
+- Les cles API doivent rester dans les secrets GitHub ou dans un `.env` local ignore par Git.
+- Le dossier `server/` est legacy et ne doit plus etre utilise dans les workflows du rendu final.
+- Le premier build Docker backend peut etre long car il installe les dependances IA Python.
