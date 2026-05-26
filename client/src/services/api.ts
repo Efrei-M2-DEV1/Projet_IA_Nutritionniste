@@ -1,10 +1,35 @@
 import type { ApiResponse } from "../types";
 import { loadHealthProfile } from "./healthProfile";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+/**
+ * En dev (`npm run dev`), URL vide = requêtes via le proxy Vite (/api, /health).
+ * Évite le blocage mixed content (front en https://localhost:5173 → back http://8000).
+ * En prod ou sans proxy : VITE_API_URL=http://localhost:8000
+ */
+function resolveApiBaseUrl(): string {
+  const fromEnv = import.meta.env.VITE_API_URL;
+  if (fromEnv !== undefined && fromEnv !== "") {
+    return fromEnv.replace(/\/$/, "");
+  }
+  if (import.meta.env.DEV) {
+    return "";
+  }
+  return "http://localhost:8000";
+}
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 export function getApiBaseUrl(): string {
+  if (API_BASE_URL === "") {
+    return import.meta.env.DEV
+      ? `${window.location.origin} (proxy → :8000)`
+      : "http://localhost:8000";
+  }
   return API_BASE_URL;
+}
+
+function apiUrl(path: string): string {
+  return `${API_BASE_URL}${path}`;
 }
 
 export async function analyzeImage(imageFile: File): Promise<ApiResponse> {
@@ -14,7 +39,7 @@ export async function analyzeImage(imageFile: File): Promise<ApiResponse> {
   const healthProfile = loadHealthProfile();
   formData.append("healthProfile", JSON.stringify(healthProfile));
 
-  const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+  const response = await fetch(apiUrl("/api/analyze"), {
     method: "POST",
     body: formData,
   });
@@ -39,7 +64,7 @@ export async function analyzeImage(imageFile: File): Promise<ApiResponse> {
 
 export async function checkBackendHealth(): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE_URL}/health`, { method: "GET" });
+    const res = await fetch(apiUrl("/health"), { method: "GET" });
     return res.ok;
   } catch {
     return false;

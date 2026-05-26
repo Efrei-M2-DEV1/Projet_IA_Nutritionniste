@@ -253,7 +253,13 @@ function App() {
         {backendOnline === false && currentView === "upload" && (
           <div className="mx-4 mt-4 mb-2 bg-amber-50 border border-amber-300 rounded-xl p-4">
             <p className="text-sm text-amber-900 font-medium">
-              Backend hors ligne — démarrez FastAPI sur {getApiBaseUrl()}
+              Backend hors ligne. Terminal :{" "}
+              <code className="text-xs bg-amber-100 px-1 rounded">
+                cd backend &amp;&amp; uvicorn app.main:app --reload --port 8000
+              </code>
+              <span className="block mt-1 text-xs text-amber-800">
+                Puis relancez le front ({getApiBaseUrl()}).
+              </span>
             </p>
           </div>
         )}
