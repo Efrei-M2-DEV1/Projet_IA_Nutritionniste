@@ -62,6 +62,25 @@ KOSHER_MEAT_KEYWORDS = [
 
 KOSHER_DAIRY_KEYWORDS = ["lait", "fromage", "beurre", "crème", "yaourt", "mozzarella", "parmesan"]
 
+DEFAULT_NUTRITION: dict[str, float] = {
+    "kcal": 100.0,
+    "prot": 5.0,
+    "carbs": 12.0,
+    "fat": 4.0,
+    "fiber": 1.0,
+}
+
+PORTION_MULTIPLIERS: dict[str, float] = {
+    "petite": 0.5,
+    "demi": 0.5,
+    "demi-assiette": 0.5,
+    "moyenne": 1.0,
+    "assiette": 1.0,
+    "grande": 1.5,
+    "grande portion": 1.5,
+    "inconnue": 1.0,
+}
+
 
 def _normalize(text: str) -> str:
     return text.lower().strip()
@@ -109,6 +128,7 @@ def _contains_keyword(texts: list[str], keywords: list[str]) -> Optional[str]:
 
 def _build_warnings(foods: list[dict], profile: Optional[dict]) -> list[str]:
     """Alertes basées sur des règles explicites (plus fiables que le LLM seul)."""
+    warnings: list[str] = []
     if not profile:
         return warnings
     allergens: list[str] = [a.lower() for a in profile.get("allergens", [])]
