@@ -4,11 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "engines": {
-    "node": ">=24.0.0",
+    "node": ">=20.19.0",
     "npm": ">=11.8.0"
   },
   "scripts": {
     "dev": "vite",
+    "dev:https": "vite --config vite.config.https.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

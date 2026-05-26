@@ -1,59 +1,64 @@
-name: CI/CD Backend
+name: CI Backend Python
 
 on:
   push:
-    branches: [main, dev, 'feature/**']
+    branches: [main, dev, 'feat/**', 'feature/**']
   pull_request:
     branches: [main, dev]
 
 jobs:
   test-backend:
-    name: Tests Backend
+    name: Tests Backend (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        python-version: ["3.11", "3.12"]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install dependencies
-        working-directory: ./server
-        run: npm ci
-
-      - name: Run linter
-        working-directory: ./server
-        run: npm run build
+        working-directory: ./backend
+        run: pip install -r requirements.txt
 
       - name: Run tests
-        working-directory: ./server
-        run: npm test
+        working-directory: ./backend
+        run: pytest tests/ -v --tb=short
         env:
-          MISTRAL_API_KEY: test_key_for_ci
-          MISTRAL_MODEL: pixtral-12b-2409
+          ALLOWED_ORIGINS: http://localhost:5173
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./server/coverage/lcov.info
-          flags: backend
-          name: backend-coverage
-          fail_ci_if_error: false
-
-  build-backend:
-    name: Build Backend
-    needs: test-backend
+  lint-backend:
+    name: Lint Backend
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff
+        working-directory: ./backend
+        run: ruff check . --output-format=github || true
+
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -62,77 +67,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          cache: 'npm'
-          cache-dependency-path: server/package-lock.json
-
-      - name: Install dependencies
-        working-directory: ./server
-        run: npm ci
-
-      - name: Build
-        working-directory: ./server
-        run: npm run build
-
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-dist
-          path: server/dist
-          retention-days: 7
-
-  test-frontend:
-    name: Tests Frontend
-    runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: client/package-lock.json
+          node-version: '24.x'
 
       - name: Install dependencies
         working-directory: ./client
-        run: npm ci
+        run: npm install
 
-      - name: Run linter
+      - name: Lint
         working-directory: ./client
         run: npm run lint || true
 
       - name: Build
         working-directory: ./client
         run: npm run build
-
-  quality-checks:
-    name: Quality & Security
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run dependency security audit (Backend)
-        working-directory: ./server
-        run: npm audit --audit-level=moderate || true
-
-      - name: Run dependency security audit (Frontend)
-        working-directory: ./client
-        run: npm audit --audit-level=moderate || true
-
-      - name: Check for outdated dependencies (Backend)
-        working-directory: ./server
-        run: npm outdated || true
-
-      - name: Check for outdated dependencies (Frontend)
-        working-directory: ./client
-        run: npm outdated || true
+        env:
+          VITE_API_URL: http://localhost:8000
 

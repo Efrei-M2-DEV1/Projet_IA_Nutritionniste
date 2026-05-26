@@ -1,140 +1,76 @@
 import type { ApiResponse } from "../types";
-import {
-  loadHealthProfile
-} from "./healthProfile";
+import { loadHealthProfile } from "./healthProfile";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+/**
+ * En dev (`npm run dev`), URL vide = requêtes via le proxy Vite (/api, /health).
+ * En Docker/prod, URL vide = requêtes via le proxy Nginx du client.
+ * Sans proxy, définir VITE_API_URL=http://localhost:8000 au build.
+ */
+function resolveApiBaseUrl(): string {
+  // Front en HTTPS (Vite) : toujours le proxy, sinon mixed content si .env pointe vers :8000.
+  if (
+    import.meta.env.DEV &&
+    typeof window !== "undefined" &&
+    window.location.protocol === "https:"
+  ) {
+    return "";
+  }
 
-export async function analyzeImage (imageFile: File): Promise<ApiResponse> {
+  const fromEnv = import.meta.env.VITE_API_URL;
+  if (fromEnv !== undefined && fromEnv !== "") {
+    return fromEnv.replace(/\/$/, "");
+  }
+  return "";
+}
+
+const API_BASE_URL = resolveApiBaseUrl();
+
+export function getApiBaseUrl(): string {
+  if (API_BASE_URL === "") {
+    return `${window.location.origin} (proxy /api)`;
+  }
+  return API_BASE_URL;
+}
+
+function apiUrl(path: string): string {
+  return `${API_BASE_URL}${path}`;
+}
+
+export async function analyzeImage(imageFile: File): Promise<ApiResponse> {
   const formData = new FormData();
   formData.append("image", imageFile);
 
-  // ✅ AJOUTER : Envoyer le profil santé au backend
   const healthProfile = loadHealthProfile();
   formData.append("healthProfile", JSON.stringify(healthProfile));
 
-  
-  try {
-    console.log("📤 Envoi de l'image avec profil santé:", healthProfile.name);
+  const response = await fetch(apiUrl("/api/analyze"), {
+    method: "POST",
+    body: formData,
+  });
 
-    const response = await fetch(`${API_BASE_URL}/api/analyze`, {
-      method: "POST",
-      body: formData,
-    });
-    console.log("📥 Réponse du serveur:", response.status);
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("❌ Erreur serveur:", errorData);
-      throw new Error(
-        `Erreur HTTP: ${response.status} - ${errorData.error || "Erreur inconnue"}`,
-      );
-    }
-
-    const data: ApiResponse = await response.json();
-    console.log("✅ Données reçues:", data);
-
-    if(!data.success){
-      throw new Error("Analyse échouée côté serveur");
-    }
-
-    return {
-      success: true,
-      extractedText: data.extractedText,
-      analysis: data.analysis,
-      
-    }
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const detail =
+      typeof errorData.detail === "string"
+        ? errorData.detail
+        : errorData.error || `Erreur HTTP ${response.status}`;
+    throw new Error(detail);
   }
-  catch (error) {
-    console.error("Erreur lors de l'analyse:", error);
-    if (error instanceof TypeError && error.message.includes("fetch")) {
-      throw new Error(
-        "Impossible de se connecter au serveur. Vérifiez que le backend est démarré sur " 
-        + API_BASE_URL,
-      );
-    }
-    throw error;
+
+  const data: ApiResponse = await response.json();
+
+  if (!data.success) {
+    throw new Error("L'analyse a échoué côté serveur.");
+  }
+
+  return data;
+}
+
+export async function checkBackendHealth(): Promise<boolean> {
+  try {
+    const res = await fetch(apiUrl("/health"), { method: "GET" });
+    return res.ok;
+  } catch {
+    return false;
   }
 }
-  export async function analyzeTextIngredients(ingredientsText: string): Promise<
-  {
-    ingredients: Array<{
-      name: string;
-      category: string;
-      explanation: string;
-      riskLevel: string;
-    }>;
-    score: number;
-    summary: string;
-  
-  }> {
-    const response = await fetch(`${API_BASE_URL}/api/analyze-text`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ text: ingredientsText }),
-    });
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`);
-    }
-    return response.json();
-  }
-  
-
-
-
-    // Créer un résultat avec un ID unique
-    // const result: AnalysisResult = {
-    //   id: Date.now().toString(),
-    //   timestamp: Date.now(),
-    //   extractedText: data.extractedText,
-    //   ingredients: data.analysis.ingredients,
-    //   score: data.analysis.score,
-    //   grade: data.analysis.grade,
-    //   summary: data.analysis.summary,
-    // };
-    // ⭐ PERSONNALISATION : Ajouter l'analyse du profil
-//     if (hasActiveProfile()) {
-//       const profile = loadHealthProfile();
-//       const compatibility = analyzeProductCompatibility(
-//         data.extractedText || "",
-//         data.analysis.ingredients,
-//         profile,
-//       );
-
-//       // Enrichir la réponse avec les données personnalisées
-//       data.analysis.personalizedWarnings = compatibility.warnings;
-//       data.analysis.suitabilityScore = compatibility.suitabilityScore;
-//       data.analysis.profileRecommendation = compatibility.recommendation;
-//     }
-//     return data;
-//   } catch (error) {
-//     console.error("Erreur lors de l'analyse:", error);
-
-//     if (error instanceof TypeError && error.message.includes("fetch")) {
-//       throw new Error(
-//         "Impossible de se connecter au serveur. Vérifiez que le backend est démarré sur " +
-//           API_BASE_URL,
-//       );
-//     }
-
-//     throw error;
-//   }
-// };
-
-// // Fonction pour générer une URL de prévisualisation d'image
-// export const createImagePreview = (file: File): Promise<string> => {
-//   return new Promise((resolve, reject) => {
-//     const reader = new FileReader();
-//     reader.onload = (e) => {
-//       if (e.target?.result) {
-//         resolve(e.target.result as string);
-//       } else {
-//         reject(new Error("Impossible de lire le fichier"));
-//       }
-//     };
-//     reader.onerror = reject;
-//     reader.readAsDataURL(file);
-//   });
-// };

@@ -1,0 +1,44 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      ALLOWED_ORIGINS: "http://localhost:5173,http://127.0.0.1:5173"
+      HF_HOME: /models/huggingface
+      TORCH_HOME: /models/torch
+      LLM_PROVIDER: ${LLM_PROVIDER:-}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      MISTRAL_MODEL: ${MISTRAL_MODEL:-mistral-small-latest}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      HF_TOKEN: ${HF_TOKEN:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - model-cache:/models
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5).read()",
+        ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  client:
+    build:
+      context: ./client
+      args:
+        VITE_API_URL: ""
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  model-cache:

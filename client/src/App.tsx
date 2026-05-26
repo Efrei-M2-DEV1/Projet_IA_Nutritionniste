@@ -4,10 +4,14 @@ import { HealthProfileSetup } from "./components/HealthProfileSetup";
 import { Help } from "./components/Help";
 import { History } from "./components/History";
 import { ImageUpload } from "./components/ImageUpload";
-import { PersonalizedAlerts } from "./components/PersonalizedAlerts";
-import { analyzeImage } from "./services/api";
+import { analyzeImage, checkBackendHealth, getApiBaseUrl } from "./services/api";
 import { hasActiveProfile, loadHealthProfile } from "./services/healthProfile";
-import { clearHistory, getHistory, saveToHistory } from "./services/history";
+import {
+  clearHistory,
+  getHistory,
+  removeFromHistory,
+  saveToHistory,
+} from "./services/history";
 import type { AnalysisResult } from "./types";
 
 type View = "upload" | "results" | "history";
@@ -22,134 +26,59 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
 
-  // 🆕 État pour le profil santé
   const profileActive = hasActiveProfile();
   const profile = loadHealthProfile();
 
-  useEffect(() => {
-    loadHistory();
-    // Ajouter un exemple d'historique si vide (pour test)
-    const existingHistory = getHistory();
-    if (existingHistory.length === 0) {
-      const exampleResult: AnalysisResult = {
-        id: "example-1",
-        timestamp: Date.now() - 86400000, // Il y a 1 jour
-        extractedText:
-          "Eau, Sucre, Farine de blé, Huile de palme, Levure, Sel, Conservateur E202, Émulsifiant E471, Agent de traitement de la farine E300",
-        ingredients: [
-          {
-            name: "Eau",
-            category: "other",
-            explanation: "Ingrédient de base, aucun risque particulier.",
-            riskLevel: "none",
-          },
-          {
-            name: "Sucre",
-            category: "other",
-            explanation:
-              "Consommé avec modération, peut contribuer à l'obésité et au diabète.",
-            riskLevel: "low",
-          },
-          {
-            name: "Farine de blé",
-            category: "allergen",
-            explanation:
-              "Contient du gluten. Allergène majeur pour les personnes intolérantes.",
-            riskLevel: "high",
-          },
-          {
-            name: "Huile de palme",
-            category: "other",
-            explanation:
-              "Riche en acides gras saturés. Impact environnemental controversé.",
-            riskLevel: "medium",
-          },
-          {
-            name: "Conservateur E202",
-            category: "preservative",
-            explanation:
-              "Sorbate de potassium. Généralement considéré comme sûr, mais peut causer des irritations chez certaines personnes sensibles.",
-            riskLevel: "low",
-          },
-          {
-            name: "Émulsifiant E471",
-            category: "additive",
-            explanation:
-              "Mono et diglycérides d'acides gras. Additif alimentaire courant, généralement bien toléré.",
-            riskLevel: "low",
-          },
-          {
-            name: "Agent de traitement E300",
-            category: "additive",
-            explanation:
-              "Acide ascorbique (vitamine C). Utilisé comme antioxydant, sans risque connu.",
-            riskLevel: "none",
-          },
-        ],
-        score: 65,
-        grade: "C",
-        summary: {
-          positives: [
-            "Contient des ingrédients naturels comme l'eau et la farine de blé.",
-            "Utilisation d'agent de traitement naturel (E300).",
-          ],
-          warnings: [
-            "Présence de sucre ajouté pouvant affecter la santé métabolique.",
-            "Contient du gluten, allergène majeur pour certaines personnes.",
-            "Utilisation d'huile de palme, à consommer avec modération.",
-          ],
-          recommendations: [
-            "Réduire la quantité de sucre pour une meilleure santé.",
-            "Considérer des alternatives à l'huile de palme.",
-            "Vérifier les allergies au gluten avant consommation.",
-          ],
-        },
-      };
-      saveToHistory(exampleResult);
-      setHistory([exampleResult]);
-    }
-  }, []);
+  const refreshHistory = () => setHistory(getHistory());
 
-  const loadHistory = () => {
-    setHistory(getHistory());
+  const recheckBackend = () => {
+    checkBackendHealth().then(setBackendOnline);
   };
 
-  const handleImageSelect = async (file: File) => {
+  useEffect(() => {
+    refreshHistory();
+    recheckBackend();
+    const onFocus = () => recheckBackend();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
+
+  const handleImageSelect = async (file: File, preview: string) => {
     setError(null);
     setIsAnalyzing(true);
 
     try {
       const apiResponse = await analyzeImage(file);
 
-      console.log("📦 Réponse API complète:", apiResponse);
-      console.log("📋 Summary reçu:", apiResponse.analysis.summary);
-
-     
-
-      // Transformer ApiResponse en AnalysisResult
       const result: AnalysisResult = {
         id: `analysis-${Date.now()}`,
         timestamp: Date.now(),
-        extractedText: apiResponse.extractedText,
-        ingredients: apiResponse.analysis.ingredients,
-        score: apiResponse.analysis.score,
-        grade: apiResponse.analysis.grade,
-        summary: apiResponse.analysis.summary,
-        // 🆕 Inclure les données personnalisées si présentes
-        
+        imageUrl: preview,
+        foods: apiResponse.foods,
+        nutrition: apiResponse.nutrition,
+        advice: apiResponse.advice,
+        warnings: apiResponse.warnings ?? [],
+        vision_mode: apiResponse.vision_mode ?? null,
       };
 
       setAnalysisResult(result);
       saveToHistory(result);
-      loadHistory();
+      refreshHistory();
       setCurrentView("results");
-      
     } catch (err) {
-      console.error("Erreur lors de l'analyse:", err);
-      setError(
-        "Erreur lors de l'analyse. Veuillez réessayer ou vérifier que le serveur est démarré.",
-      );
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Erreur lors de l'analyse. Veuillez réessayer.";
+      if (err instanceof TypeError && message.includes("fetch")) {
+        setError(
+          `Impossible de joindre le backend (${getApiBaseUrl()}). Démarrez FastAPI : cd backend && uvicorn app.main:app --reload --port 8000`,
+        );
+      } else {
+        setError(message);
+      }
     } finally {
       setIsAnalyzing(false);
     }
@@ -162,7 +91,7 @@ function App() {
   };
 
   const handleViewHistory = () => {
-    loadHistory();
+    refreshHistory();
     setCurrentView("history");
   };
 
@@ -172,18 +101,22 @@ function App() {
   };
 
   const handleClearHistory = () => {
-    if (confirm("Êtes-vous sûr de vouloir effacer tout l'historique ?")) {
+    if (confirm("Effacer tout l'historique des repas ?")) {
       clearHistory();
-      loadHistory();
+      refreshHistory();
     }
+  };
+
+  const handleDeleteHistoryItem = (id: string) => {
+    removeFromHistory(id);
+    refreshHistory();
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-400 via-yellow-400 to-amber-400 pb-24 md:pb-0 safe-area-top safe-area-bottom">
-  
-      {/* Navigation mobile fixe en bas - cachée quand modal profil ouverte */}
-      <nav className={`fixed bottom-0 left-0 right-0 z-50 safe-area-bottom md:hidden ${profileModalOpen ? 'hidden' : ''}`}>
-      
+      <nav
+        className={`fixed bottom-0 left-0 right-0 z-50 safe-area-bottom md:hidden ${profileModalOpen ? "hidden" : ""}`}
+      >
         <div className="grid grid-cols-2 h-24 bg-black/40 backdrop-blur-xl">
           <button
             onClick={handleNewAnalysis}
@@ -252,7 +185,6 @@ function App() {
         </div>
       </nav>
 
-      {/* Bouton aide flottant - mobile seulement, masqué sur historique */}
       {currentView !== "history" && (
         <button
           onClick={() => setShowHelp(true)}
@@ -275,22 +207,20 @@ function App() {
         </button>
       )}
 
-      {/* Header desktop seulement */}
       <header className="hidden md:block bg-white/90 backdrop-blur-sm shadow-sm border-b border-orange-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-orange-500 via-yellow-500 to-amber-500 rounded-xl flex items-center justify-center shadow-md">
-                <span className="text-white text-lg font-bold">🔍</span>
+                <span className="text-white text-lg font-bold">🥗</span>
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-800">
-                  Analyseur d'Ingrédients
+                  Nutritionniste IA
                 </h1>
-                {/* 🆕 Afficher le profil actif sur desktop */}
                 {profileActive && (
                   <p className="text-xs text-purple-600 font-medium mt-0.5">
-                    👤 Profil: {profile.name}
+                    Profil : {profile.name}
                   </p>
                 )}
               </div>
@@ -327,19 +257,44 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content - Fullscreen sur mobile */}
       <main className="min-h-screen flex flex-col md:max-w-7xl md:mx-auto md:px-4 md:py-8">
+        {backendOnline === false && currentView === "upload" && (
+          <div className="mx-4 mt-4 mb-2 bg-amber-50 border border-amber-300 rounded-xl p-4">
+            <p className="text-sm text-amber-900 font-medium">
+              Backend non détecté. Gardez uvicorn actif (terminal 1), lancez le
+              front dans un <strong>2ᵉ terminal</strong> :{" "}
+              <code className="text-xs bg-amber-100 px-1 rounded">
+                cd client &amp;&amp; npm run dev
+              </code>
+            </p>
+            <p className="text-xs text-amber-800 mt-2">
+              Ne pas utiliser <code>npm run dev</code> à la racine (ancien serveur
+              Node). API : {getApiBaseUrl()}
+            </p>
+            <button
+              type="button"
+              onClick={recheckBackend}
+              className="mt-3 text-sm font-semibold text-amber-900 underline"
+            >
+              Réessayer la connexion
+            </button>
+          </div>
+        )}
+
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="mx-4 mb-4 bg-red-50 border border-red-200 rounded-xl p-4">
             <div className="flex items-start gap-3">
               <span className="text-2xl">❌</span>
               <div className="flex-1">
                 <h3 className="font-semibold text-red-800 mb-1">Erreur</h3>
                 <p className="text-sm text-red-700">{error}</p>
-                <p className="text-xs text-red-600 mt-2">
-                  Assurez-vous que le serveur backend est démarré et accessible.
-                </p>
               </div>
+              <button
+                onClick={() => setError(null)}
+                className="text-red-500 text-sm underline"
+              >
+                Fermer
+              </button>
             </div>
           </div>
         )}
@@ -355,78 +310,62 @@ function App() {
 
         {currentView === "results" && analysisResult && (
           <div className="flex-1 space-y-4 md:space-y-6 px-4 pt-4 pb-32 md:pb-8 overflow-y-auto">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <button
-                onClick={handleNewAnalysis}
-                className="flex items-center gap-2 px-6 py-4 bg-white/20 backdrop-blur-md active:bg-white/30 text-white rounded-[2rem] font-bold transition-colors touch-manipulation min-h-[56px] shadow-lg"
+            <button
+              onClick={handleNewAnalysis}
+              className="flex items-center gap-2 px-6 py-4 bg-white/20 backdrop-blur-md active:bg-white/30 text-white rounded-[2rem] font-bold transition-colors touch-manipulation min-h-[56px] shadow-lg"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2.5}
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                  />
-                </svg>
-                <span className="text-lg">Retour</span>
-              </button>
-            </div>
-
-            {/* 🆕 Alertes personnalisées (si profil actif) - Mobile & Desktop */}
-            {analysisResult.personalizedWarnings &&
-              analysisResult.personalizedWarnings.length > 0 && (
-                <PersonalizedAlerts
-                  warnings={analysisResult.personalizedWarnings}
-                  suitabilityScore={analysisResult.suitabilityScore || 0}
-                  recommendation={analysisResult.profileRecommendation || ""}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
-              )}
-
-            {/* Résultats normaux */}
+              </svg>
+              <span className="text-lg">Nouvelle photo</span>
+            </button>
             <AnalysisResults result={analysisResult} />
           </div>
         )}
 
         {currentView === "history" && (
-          <div className="flex-1 space-y-4 md:space-y-6 px-4 pt-4 pb-32 md:pb-8 overflow-y-auto">
+          <div className="flex-1 space-y-4 px-4 pt-4 pb-32 md:pb-8 overflow-y-auto">
             <History
               history={history}
               onSelectResult={handleSelectFromHistory}
               onClearHistory={handleClearHistory}
+              onDeleteItem={handleDeleteHistoryItem}
             />
           </div>
         )}
       </main>
 
-      {/* Footer - Masqué sur mobile (navigation en bas) */}
       <footer className="hidden md:block mt-16 bg-white/80 backdrop-blur-sm border-t border-orange-100 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-sm text-gray-600 mb-2">
-            Application d'analyse d'ingrédients - Projet Web IA
+            Nutritionniste IA — Projet IA & Deep Learning · EFREI
           </p>
           <p className="text-xs text-gray-500">
-            Cette application est fournie à titre informatif uniquement. Elle ne
-            remplace pas un avis médical ou professionnel.
+            Estimations nutritionnelles à titre informatif. Ne remplace pas un
+            avis médical.
           </p>
         </div>
       </footer>
 
-      {/* Modal d'aide */}
       {showHelp && <Help onClose={() => setShowHelp(false)} />}
 
-      {/* 🆕 Bouton profil santé flottant - Mobile & Desktop */}
-       {/* 🆕 Bouton profil santé flottant - Mobile & Desktop (unique et au-dessus de la nav) */}
-      <div className="fixed right-4 bottom-36 z-60 pointer-events-auto md:static">
-        <HealthProfileSetup onSave={() => window.location.reload()}
-        onOpen={() => setProfileModalOpen(true)}
-        onClose={() => setProfileModalOpen(false)} />
-     </div>
-      
+      <div className="fixed right-4 bottom-36 z-60 pointer-events-auto md:bottom-8 md:right-8">
+        <HealthProfileSetup
+          onSave={() => window.location.reload()}
+          onOpen={() => setProfileModalOpen(true)}
+          onClose={() => setProfileModalOpen(false)}
+        />
+      </div>
     </div>
   );
 }

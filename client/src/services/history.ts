@@ -1,44 +1,52 @@
-import type { AnalysisResult } from '../types';
+import type { AnalysisResult } from "../types";
 
-const HISTORY_KEY = 'ingredient_analyzer_history';
+const HISTORY_KEY = "nutritionniste_ia_history";
+const LEGACY_KEY = "ingredient_analyzer_history";
 const MAX_HISTORY_ITEMS = 20;
 
-export const saveToHistory = (result: AnalysisResult): void => {
-  try {
-    const history = getHistory();
-    // Ajouter le nouveau résultat au début
-    const updatedHistory = [result, ...history].slice(0, MAX_HISTORY_ITEMS);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedHistory));
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde de l\'historique:', error);
-  }
-};
+function isMealResult(item: unknown): item is AnalysisResult {
+  if (!item || typeof item !== "object") return false;
+  const r = item as AnalysisResult;
+  return (
+    Array.isArray(r.foods) &&
+    r.nutrition != null &&
+    typeof r.nutrition.calories_kcal === "number"
+  );
+}
 
 export const getHistory = (): AnalysisResult[] => {
   try {
-    const stored = localStorage.getItem(HISTORY_KEY);
+    const stored =
+      localStorage.getItem(HISTORY_KEY) ||
+      localStorage.getItem(LEGACY_KEY);
     if (!stored) return [];
-    return JSON.parse(stored);
-  } catch (error) {
-    console.error('Erreur lors de la lecture de l\'historique:', error);
+    const parsed: unknown[] = JSON.parse(stored);
+    return parsed.filter(isMealResult);
+  } catch {
     return [];
   }
 };
 
-export const clearHistory = (): void => {
+export const saveToHistory = (result: AnalysisResult): void => {
   try {
-    localStorage.removeItem(HISTORY_KEY);
+    const history = getHistory();
+    const updated = [result, ...history.filter((h) => h.id !== result.id)].slice(
+      0,
+      MAX_HISTORY_ITEMS,
+    );
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+    localStorage.removeItem(LEGACY_KEY);
   } catch (error) {
-    console.error('Erreur lors de la suppression de l\'historique:', error);
+    console.error("Erreur sauvegarde historique:", error);
   }
 };
 
+export const clearHistory = (): void => {
+  localStorage.removeItem(HISTORY_KEY);
+  localStorage.removeItem(LEGACY_KEY);
+};
+
 export const removeFromHistory = (id: string): void => {
-  try {
-    const history = getHistory();
-    const updatedHistory = history.filter(item => item.id !== id);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(updatedHistory));
-  } catch (error) {
-    console.error('Erreur lors de la suppression de l\'élément:', error);
-  }
+  const updated = getHistory().filter((item) => item.id !== id);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
 };
