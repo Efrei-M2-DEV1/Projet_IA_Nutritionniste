@@ -4,17 +4,20 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "server": "cd server && npm run dev",
+    "backend": "cd backend && uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload",
     "client": "cd client && npm run dev",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "concurrently \"npm run backend\" \"npm run client\"",
+    "test:backend": "cd backend && pytest tests -v",
+    "build:client": "cd client && npm run build",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "engines": {
-    "node": ">=24.0.0",
+    "node": ">=20.19.0",
     "npm": ">=11.8.0"
   },
   "devDependencies": {

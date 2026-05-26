@@ -3,11 +3,11 @@ import { loadHealthProfile } from "./healthProfile";
 
 /**
  * En dev (`npm run dev`), URL vide = requêtes via le proxy Vite (/api, /health).
- * Évite le blocage mixed content (front en https://localhost:5173 → back http://8000).
- * En prod ou sans proxy : VITE_API_URL=http://localhost:8000
+ * En Docker/prod, URL vide = requêtes via le proxy Nginx du client.
+ * Sans proxy, définir VITE_API_URL=http://localhost:8000 au build.
  */
 function resolveApiBaseUrl(): string {
-  // Front en HTTPS (Vite) → toujours le proxy, sinon mixed content si .env pointe vers :8000
+  // Front en HTTPS (Vite) : toujours le proxy, sinon mixed content si .env pointe vers :8000.
   if (
     import.meta.env.DEV &&
     typeof window !== "undefined" &&
@@ -20,19 +20,14 @@ function resolveApiBaseUrl(): string {
   if (fromEnv !== undefined && fromEnv !== "") {
     return fromEnv.replace(/\/$/, "");
   }
-  if (import.meta.env.DEV) {
-    return "";
-  }
-  return "http://localhost:8000";
+  return "";
 }
 
 const API_BASE_URL = resolveApiBaseUrl();
 
 export function getApiBaseUrl(): string {
   if (API_BASE_URL === "") {
-    return import.meta.env.DEV
-      ? `${window.location.origin} (proxy → :8000)`
-      : "http://localhost:8000";
+    return `${window.location.origin} (proxy /api)`;
   }
   return API_BASE_URL;
 }
