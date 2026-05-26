@@ -23,6 +23,7 @@ class AnalyzeResponse(BaseModel):
     advice: str
     warnings: list[str]
     imageUrl: Optional[str] = None
+    vision_mode: Optional[str] = None
 
 
 class ErrorResponse(BaseModel):

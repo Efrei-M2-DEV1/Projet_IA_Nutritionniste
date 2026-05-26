@@ -21,6 +21,7 @@ export interface ApiResponse {
   advice: string;
   warnings: string[];
   imageUrl?: string | null;
+  vision_mode?: string | null;
 }
 
 export interface AnalysisResult {
@@ -31,6 +32,7 @@ export interface AnalysisResult {
   nutrition: NutritionInfo;
   advice: string;
   warnings: string[];
+  vision_mode?: string | null;
 }
 
 export interface HealthProfile {

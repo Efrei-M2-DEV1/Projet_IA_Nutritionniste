@@ -54,7 +54,7 @@ const FoodCard = ({ food }: { food: FoodItem }) => (
 );
 
 export const AnalysisResults = ({ result }: AnalysisResultsProps) => {
-  const { foods, nutrition, advice, warnings, imageUrl } = result;
+  const { foods, nutrition, advice, warnings, imageUrl, vision_mode } = result;
 
   return (
     <div className="w-full space-y-4 md:space-y-6 animate-fadeIn">
@@ -75,6 +75,11 @@ export const AnalysisResults = ({ result }: AnalysisResultsProps) => {
           <h2 className="text-3xl font-bold text-gray-800">
             {Math.round(nutrition.calories_kcal)} kcal
           </h2>
+          {vision_mode && (
+            <p className="text-xs font-semibold uppercase tracking-wide text-orange-700 bg-orange-50 border border-orange-200 rounded-full px-3 py-1">
+              Vision: {vision_mode}
+            </p>
+          )}
           <p className="text-sm text-gray-500">
             {new Date(result.timestamp).toLocaleDateString('fr-FR', {
               day: 'numeric',

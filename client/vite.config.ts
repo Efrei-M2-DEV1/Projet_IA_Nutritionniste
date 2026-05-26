@@ -1,7 +1,7 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-// HTTP en local (http://localhost:5173) — évite mixed content avec le backend :8000
+// HTTP en local (http://localhost:5173) — évite mixed content avec le backend :8001
 // Pour la caméra mobile en HTTPS : npm run dev:https (voir package.json)
 export default defineConfig({
   plugins: [react()],
@@ -9,12 +9,12 @@ export default defineConfig({
     host: true,
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+        target: "http://localhost:8001",
         changeOrigin: true,
         secure: false,
       },
       "/health": {
-        target: "http://localhost:8000",
+        target: "http://localhost:8001",
         changeOrigin: true,
         secure: false,
       },
