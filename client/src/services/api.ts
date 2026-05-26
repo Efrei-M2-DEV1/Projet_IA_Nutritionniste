@@ -1,19 +1,16 @@
 import type { ApiResponse } from "../types";
-import {
-  loadHealthProfile
-} from "./healthProfile";
+import { loadHealthProfile } from "./healthProfile";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+// FastAPI tourne sur le port 8000 par défaut
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-export async function analyzeImage (imageFile: File): Promise<ApiResponse> {
+export async function analyzeImage(imageFile: File): Promise<ApiResponse> {
   const formData = new FormData();
   formData.append("image", imageFile);
 
-  // ✅ AJOUTER : Envoyer le profil santé au backend
   const healthProfile = loadHealthProfile();
   formData.append("healthProfile", JSON.stringify(healthProfile));
 
-  
   try {
     console.log("📤 Envoi de l'image avec profil santé:", healthProfile.name);
 
@@ -27,30 +24,23 @@ export async function analyzeImage (imageFile: File): Promise<ApiResponse> {
       const errorData = await response.json().catch(() => ({}));
       console.error("❌ Erreur serveur:", errorData);
       throw new Error(
-        `Erreur HTTP: ${response.status} - ${errorData.error || "Erreur inconnue"}`,
+        `Erreur HTTP: ${response.status} - ${errorData.detail || errorData.error || "Erreur inconnue"}`,
       );
     }
 
     const data: ApiResponse = await response.json();
     console.log("✅ Données reçues:", data);
 
-    if(!data.success){
+    if (!data.success) {
       throw new Error("Analyse échouée côté serveur");
     }
 
-    return {
-      success: true,
-      extractedText: data.extractedText,
-      analysis: data.analysis,
-      
-    }
-  }
-  catch (error) {
+    return data;
+  } catch (error) {
     console.error("Erreur lors de l'analyse:", error);
     if (error instanceof TypeError && error.message.includes("fetch")) {
       throw new Error(
-        "Impossible de se connecter au serveur. Vérifiez que le backend est démarré sur " 
-        + API_BASE_URL,
+        `Impossible de se connecter au serveur. Vérifiez que le backend Python est démarré sur ${API_BASE_URL}`,
       );
     }
     throw error;

@@ -1,8 +1,57 @@
-import type { AnalysisResult, IngredientAnalysis } from '../types';
+import type { AnalysisResult, FoodItem } from '../types';
 
 interface AnalysisResultsProps {
   result: AnalysisResult;
 }
+
+const MacroCard = ({
+  label,
+  value,
+  unit,
+  color,
+  icon,
+}: {
+  label: string;
+  value: number;
+  unit: string;
+  color: string;
+  icon: string;
+}) => (
+  <div className={`rounded-xl p-4 border ${color} flex flex-col items-center gap-1`}>
+    <span className="text-2xl">{icon}</span>
+    <span className="text-xl font-bold">{Math.round(value)}</span>
+    <span className="text-xs font-medium">{unit}</span>
+    <span className="text-xs text-gray-600 text-center">{label}</span>
+  </div>
+);
+
+const ConfidenceBadge = ({ confidence }: { confidence: number }) => {
+  const pct = Math.round(confidence * 100);
+  const color =
+    pct >= 80
+      ? 'bg-green-100 text-green-800 border-green-300'
+      : pct >= 60
+      ? 'bg-yellow-100 text-yellow-800 border-yellow-300'
+      : 'bg-red-100 text-red-800 border-red-300';
+  return (
+    <span className={`px-2 py-0.5 rounded-md text-xs font-medium border ${color}`}>
+      {pct}%
+    </span>
+  );
+};
+
+const FoodCard = ({ food }: { food: FoodItem }) => (
+  <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3 border border-gray-200">
+    <div className="flex items-center gap-3">
+      <span className="text-2xl">🍽️</span>
+      <div>
+        <p className="font-semibold text-gray-800 text-sm">{food.name}</p>
+        <p className="text-xs text-gray-500 capitalize">Portion {food.portion_estimate}</p>
+      </div>
+    </div>
+    <ConfidenceBadge confidence={food.confidence} />
+  </div>
+);
 
 const getGradeColor = (grade: string) => {
   switch (grade) {
@@ -66,168 +115,118 @@ const getCategoryIcon = (category: string) => {
 };
 
 export const AnalysisResults = ({ result }: AnalysisResultsProps) => {
+  const { foods, nutrition, advice, warnings } = result;
+
   return (
     <div className="w-full space-y-4 md:space-y-6 animate-fadeIn">
-      {/* En-tête avec note et grade */}
+      {/* En-tête calories */}
       <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-5 md:p-6 border border-orange-100">
-        <div className="flex flex-col items-center md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-            <div className={`
-              w-28 h-28 md:w-24 md:h-24 rounded-full flex items-center justify-center text-5xl md:text-4xl font-bold border-4
-              ${getGradeColor(result.grade)}
-            `}>
-              {result.grade}
-            </div>
-            <div className="text-center md:text-left">
-              <h2 className="text-2xl md:text-2xl font-bold text-gray-800 mb-1">
-                Note: {result.score}/100
-              </h2>
-              <p className="text-sm text-gray-600">
-                {new Date(result.timestamp).toLocaleDateString('fr-FR', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Texte extrait */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-5 md:p-6 border border-orange-100">
-        <h3 className="text-lg md:text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-xl">📝</span>
-          Texte extrait de l'étiquette
-        </h3>
-        <div className="bg-gray-50 rounded-xl p-4 md:p-4 border border-gray-200">
-          <p className="text-sm md:text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-            {result.extractedText || 'Aucun texte extrait'}
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-4xl">🥗</span>
+          <h2 className="text-3xl font-bold text-gray-800">
+            {Math.round(nutrition.calories_kcal)} kcal
+          </h2>
+          <p className="text-sm text-gray-500">
+            {new Date(result.timestamp).toLocaleDateString('fr-FR', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
           </p>
         </div>
       </div>
 
-      {/* Ingrédients analysés */}
+      {/* Macronutriments */}
       <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-5 md:p-6 border border-orange-100">
-        <h3 className="text-lg md:text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-xl">🔍</span>
-          Ingrédients analysés ({result.ingredients.length})
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <span className="text-xl">📊</span>
+          Macronutriments
         </h3>
-        <div className="space-y-3 md:space-y-3">
-          {result.ingredients.map((ingredient, index) => (
-            <IngredientCard key={index} ingredient={ingredient} />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <MacroCard
+            label="Protéines"
+            value={nutrition.protein_g}
+            unit="g"
+            color="bg-blue-50 border-blue-200 text-blue-700"
+            icon="💪"
+          />
+          <MacroCard
+            label="Glucides"
+            value={nutrition.carbs_g}
+            unit="g"
+            color="bg-yellow-50 border-yellow-200 text-yellow-700"
+            icon="🌾"
+          />
+          <MacroCard
+            label="Lipides"
+            value={nutrition.fat_g}
+            unit="g"
+            color="bg-orange-50 border-orange-200 text-orange-700"
+            icon="🫒"
+          />
+          <MacroCard
+            label="Fibres"
+            value={nutrition.fiber_g}
+            unit="g"
+            color="bg-green-50 border-green-200 text-green-700"
+            icon="🥦"
+          />
+        </div>
+      </div>
+
+      {/* Aliments détectés */}
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-5 md:p-6 border border-orange-100">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <span className="text-xl">🔍</span>
+          Aliments détectés ({foods.length})
+        </h3>
+        <div className="space-y-2">
+          {foods.map((food, index) => (
+            <FoodCard key={index} food={food} />
           ))}
         </div>
       </div>
 
-      {/* Synthèse */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Points positifs */}
-        {result.summary.positives.length > 0 && (
-          <div className="bg-green-50 rounded-xl shadow-lg p-6 border border-green-200">
-            <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center gap-2">
-              <span>✅</span>
-              Points positifs
-            </h3>
-            <ul className="space-y-2">
-              {result.summary.positives.map((point, index) => (
-                <li key={index} className="text-sm text-green-700 flex items-start gap-2">
-                  <span className="mt-1">•</span>
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Points de vigilance */}
-        {result.summary?.warnings && result.summary.warnings.length > 0 && (
-          <div className="bg-orange-50 rounded-xl shadow-lg p-6 border border-orange-200">
-            <h3 className="text-lg font-semibold text-orange-800 mb-4 flex items-center gap-2">
-              <span>⚠️</span>
-              Points de vigilance
-            </h3>
-            <ul className="space-y-2">
-              {result.summary.warnings.map((warning, index) => (
-                <li key={index} className="text-sm text-orange-700 flex items-start gap-2">
-                  <span className="mt-1">•</span>
-                  <span>{warning}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Recommandations */}
-        {result.summary?.recommendations && result.summary.recommendations.length > 0 && (
-          <div className="bg-blue-50 rounded-xl shadow-lg p-6 border border-blue-200">
-            <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
-              <span>💡</span>
-              Recommandations
-            </h3>
-            <ul className="space-y-2">
-              {result.summary.recommendations.map((rec, index) => (
-                <li key={index} className="text-sm text-blue-700 flex items-start gap-2">
-                  <span className="mt-1">•</span>
-                  <span>{rec}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+      {/* Conseils personnalisés */}
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-5 md:p-6 border border-orange-100">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+          <span className="text-xl">💡</span>
+          Conseils nutritionnels
+        </h3>
+        <p className="text-sm text-gray-700 leading-relaxed">{advice}</p>
       </div>
-        {/* ✅ AJOUTER : Message si summary est vide */}
-      {(!result.summary || 
-        (result.summary.positives.length === 0 && 
-         result.summary.warnings.length === 0 && 
-         result.summary.recommendations.length === 0)) && (
-        <div className="bg-gray-50 rounded-xl shadow-lg p-6 border border-gray-200">
-          <p className="text-gray-600 text-center">
-            ℹ️ Aucune synthèse disponible pour cette analyse
-          </p>
+
+      {/* Alertes profil santé */}
+      {warnings.length > 0 && (
+        <div className="bg-red-50 rounded-2xl shadow-lg p-5 md:p-6 border border-red-200">
+          <h3 className="text-lg font-semibold text-red-800 mb-3 flex items-center gap-2">
+            <span className="text-xl">⚠️</span>
+            Alertes profil santé
+          </h3>
+          <ul className="space-y-2">
+            {warnings.map((w, i) => (
+              <li key={i} className="text-sm text-red-700 flex items-start gap-2">
+                <span className="mt-1">•</span>
+                <span>{w}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
-      {/* Avertissement */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-4">
-        <p className="text-sm md:text-sm text-amber-800 flex items-start gap-2 leading-relaxed">
+      {/* Avertissement légal */}
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+        <p className="text-sm text-amber-800 flex items-start gap-2 leading-relaxed">
           <span className="font-semibold text-base">⚠️</span>
           <span>
-            <strong>Important:</strong> Cette analyse est fournie à titre informatif et pédagogique uniquement.
-            Elle ne constitue pas un avis médical ou réglementaire. En cas de doute, consultez un professionnel de santé.
+            <strong>Important :</strong> Cette analyse est fournie à titre informatif et pédagogique
+            uniquement. Les estimations nutritionnelles sont approximatives et ne constituent pas un
+            avis médical. Consultez un professionnel de santé si nécessaire.
           </span>
         </p>
       </div>
-    </div>
-  );
-};
-
-const IngredientCard = ({ ingredient }: { ingredient: IngredientAnalysis }) => {
-  return (
-    <div className="bg-gray-50 rounded-xl p-4 md:p-4 border border-gray-200 active:shadow-md transition-shadow">
-      <div className="flex items-start justify-between gap-4 mb-3">
-        <div className="flex-1">
-          <h4 className="font-semibold text-gray-800 mb-2 text-base md:text-sm">{ingredient.name}</h4>
-          <div className="flex flex-wrap gap-2">
-            <span className={`
-              px-3 py-1.5 rounded-lg text-xs md:text-xs font-medium border
-              ${getRiskColor(ingredient.riskLevel)}
-            `}>
-              {ingredient.riskLevel === 'high' ? 'Risque élevé' :
-               ingredient.riskLevel === 'medium' ? 'Risque modéré' :
-               ingredient.riskLevel === 'low' ? 'Risque faible' : 'Aucun risque'}
-            </span>
-            <span className="px-3 py-1.5 rounded-lg text-xs md:text-xs font-medium bg-gray-200 text-gray-700 border border-gray-300">
-              {getCategoryIcon(ingredient.category)} {getCategoryLabel(ingredient.category)}
-            </span>
-          </div>
-        </div>
-      </div>
-      <p className="text-sm md:text-sm text-gray-600 leading-relaxed mt-2">
-        {ingredient.explanation}
-      </p>
     </div>
   );
 };
