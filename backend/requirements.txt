@@ -5,11 +5,11 @@ pydantic>=2.7.0
 pydantic-settings>=2.2.0
 python-dotenv>=1.0.1
 
-# ── IA — décommentez selon l'option choisie ──────────────────────────────────
-# Option A : Hugging Face (vision locale)
-# transformers>=4.40.0
-# torch>=2.3.0
-# Pillow>=10.3.0
+# ── IA — vision locale (Food-101 via Hugging Face / PyTorch) ─────────────────
+torch>=2.12.0
+torchvision>=0.27.0
+transformers>=5.0.0
+Pillow>=10.3.0
 
 # Option B : API Vision externe
 # openai>=1.30.0       # GPT-4o Vision

@@ -20,8 +20,20 @@ NUTRITION_TABLE: dict[str, dict] = {
     "poulet grillé": {"kcal": 165, "prot": 31, "carbs": 0,  "fat": 3.6, "fiber": 0},
     "riz":           {"kcal": 130, "prot": 2.7,"carbs": 28, "fat": 0.3, "fiber": 0.4},
     "salade verte":  {"kcal": 15,  "prot": 1.3,"carbs": 2.9,"fat": 0.2, "fiber": 1.8},
+    "salade":        {"kcal": 15,  "prot": 1.3,"carbs": 2.9,"fat": 0.2, "fiber": 1.8},
+    "pâtes":         {"kcal": 220, "prot": 8,  "carbs": 43, "fat": 1.3, "fiber": 1.8},
     "pasta":         {"kcal": 220, "prot": 8,  "carbs": 43, "fat": 1.3, "fiber": 1.8},
+    "lasagnes":      {"kcal": 150, "prot": 8,  "carbs": 20, "fat": 6,   "fiber": 1.8},
+    "lasagne":       {"kcal": 150, "prot": 8,  "carbs": 20, "fat": 6,   "fiber": 1.8},
     "pizza":         {"kcal": 266, "prot": 11, "carbs": 33, "fat": 10,  "fiber": 2.3},
+    "burger":        {"kcal": 295, "prot": 17, "carbs": 30, "fat": 13,  "fiber": 2.0},
+    "brocoli":       {"kcal": 34,  "prot": 2.8,"carbs": 7,  "fat": 0.4, "fiber": 2.6},
+    "banane":        {"kcal": 89,  "prot": 1.1,"carbs": 23, "fat": 0.3, "fiber": 2.6},
+    "pomme":         {"kcal": 52,  "prot": 0.3,"carbs": 14, "fat": 0.2, "fiber": 2.4},
+    "orange":        {"kcal": 47,  "prot": 0.9,"carbs": 12, "fat": 0.1, "fiber": 2.4},
+    "salade":        {"kcal": 15,  "prot": 1.3,"carbs": 2.9,"fat": 0.2, "fiber": 1.8},
+    "glace":         {"kcal": 207, "prot": 3.5,"carbs": 24, "fat": 11,  "fiber": 0.7},
+    "soupe":         {"kcal": 40,  "prot": 2,  "carbs": 6,  "fat": 1.2, "fiber": 1.0},
 }
 
 
@@ -52,7 +64,7 @@ def _build_warnings(foods: list[dict], profile: Optional[dict]) -> list[str]:
         for allergen in allergens:
             if allergen in food:
                 warnings.append(f"Allergie possible : {food} contient {allergen}")
-    if profile.get("diabetes") and any("riz" in f or "pasta" in f for f in food_names):
+    if profile.get("diabetes") and any("riz" in f or "pasta" in f or "pâtes" in f for f in food_names):
         warnings.append("Attention : glucides élevés — surveillance glycémique recommandée")
     return warnings
 

@@ -4,7 +4,7 @@ from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 
 from app.models.schemas import AnalyzeResponse, ErrorResponse
-from app.services.vision import detect_foods
+from app.services.vision import detect_foods, available_labels, get_vision_mode
 from app.services.nutrition import estimate_nutrition
 
 router = APIRouter()
@@ -69,4 +69,15 @@ async def analyze(
         advice=result["advice"],
         warnings=result["warnings"],
         imageUrl=None,
+        vision_mode=get_vision_mode(),
     )
+
+
+@router.get("/vision/labels", summary="Liste des labels d'aliments disponibles")
+def get_labels():
+    """Retourne la liste des labels francais utilisés par la détection (utile pour le frontend)."""
+    try:
+        labels = available_labels()
+    except Exception:
+        labels = []
+    return JSONResponse(content={"labels": labels, "count": len(labels)})

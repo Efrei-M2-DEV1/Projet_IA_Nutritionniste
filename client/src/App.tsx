@@ -60,6 +60,7 @@ function App() {
         nutrition: apiResponse.nutrition,
         advice: apiResponse.advice,
         warnings: apiResponse.warnings ?? [],
+        vision_mode: apiResponse.vision_mode ?? null,
       };
 
       setAnalysisResult(result);

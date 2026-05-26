@@ -33,6 +33,23 @@ Dans un monde où la transparence alimentaire devient cruciale, **Analyseur d'In
 - 📱 **Accessibilité** : Une app web responsive compatible desktop et mobile
 - 🎓 **Apprentissage** : Projet académique Master 2 - Web & IA
 
+### ✅ Version actuelle du rendu
+
+La version livrable du sujet 1 n'analyse plus des étiquettes produits. Elle traite une **photo d'assiette**, détecte des aliments courants côté backend FastAPI, puis renvoie des calories/macros et des conseils personnalisés côté frontend React.
+
+- Backend vision actuel: `Food-101` finement ajusté via Hugging Face (`vishnudas08/food101-vit-model`)
+- Réponse API: `foods`, `nutrition`, `advice`, `warnings`, `vision_mode`
+- Limite à annoncer: l'estimation reste approximative et ne constitue pas un avis médical
+- Détails techniques: voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+### 📚 Modèle Vision — résumé pour la soutenance
+
+- Dataset: Food-101
+- Classes: 101 catégories de plats
+- Taille annoncée: 75 000 images d'entraînement
+- Métrique annoncée: environ 90% de validation accuracy
+- Limite clé: un plat hors Food-101 ou très ambigu peut encore être mal classé
+
 ### 🎯 Nos Ambitions
 
 - ✅ Analyse instantanée des ingrédients via OCR et IA
