@@ -16,23 +16,21 @@ git commit -m "chore: ajout import automatique des issues projet"
 git push
 ```
 
-### 2. Lancer un test (dry run)
+### 2. Créer les issues (obligatoire : dry_run = false)
 
 1. Ouvrir le repo sur **GitHub.com**
-2. Onglet **Actions**
-3. Workflow **« Import project issues »**
-4. **Run workflow**
-5. Laisser **dry_run = true** → **Run workflow**
-
-Vérifier que le job passe au vert (aucune issue créée, juste une simulation).
-
-### 3. Créer les vraies issues
-
-1. **Actions** → **Import project issues** → **Run workflow**
-2. Choisir **dry_run = false**
-3. **Run workflow**
+2. Onglet **Actions** → **Import project issues** (menu de gauche)
+3. **Run workflow** → branche **`main`**
+4. Choisir **dry_run = `false`** ← **sinon 0 issue créée**
+5. **Run workflow**
 
 Après ~1 minute : onglet **Issues** → **37 issues** avec labels (`P1-backend`, `semaine-1`, etc.).
+
+> Si vous avez déjà lancé avec `dry_run = true` : c’est normal que l’onglet Issues soit vide. Le workflow est vert mais n’a rien créé.
+
+### 3. (Optionnel) Test sans créer
+
+Relancer avec **dry_run = `true`** uniquement pour vérifier que le JSON est valide.
 
 ---
 
