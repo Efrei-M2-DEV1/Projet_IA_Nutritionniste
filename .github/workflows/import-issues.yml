@@ -1,8 +1,11 @@
-# Importe les issues définies dans .github/issues.json
-# ⚠️ Ne pas lancer plusieurs fois avec dry_run=false : doublons possibles.
+# Importe les issues définies dans .github/issues.json (API REST, sans git push).
 #
 # Utilisation : Actions → "Import project issues" → Run workflow
-# Choisir dry_run = false pour CRÉER les issues (true = simulation uniquement)
+#   dry_run = true  → simulation
+#   dry_run = false → création (ignore les titres déjà existants)
+#
+# Si erreur 403 : Settings → Actions → General → "Read and write permissions"
+# Secours : ajouter le secret ISSUES_IMPORT_TOKEN (PAT avec scope repo)
 
 name: Import project issues
 
@@ -11,6 +14,14 @@ on:
     inputs:
       dry_run:
         description: "true = test SANS créer | false = CRÉER les issues"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      force:
+        description: "true = recréer même si le titre existe déjà (doublons)"
         required: true
         default: "false"
         type: choice
@@ -29,28 +40,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Import issues from JSON
-        id: import
-        uses: dsanchezcr/issue-importer-action@v1.0.0
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          file-path: .github/issues.json
-          file-format: json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          dry-run: ${{ github.event.inputs.dry_run }}
+          python-version: "3.12"
 
-      - name: Résumé de l'import
+      - name: Import issues from JSON
+        env:
+          GITHUB_TOKEN: ${{ secrets.ISSUES_IMPORT_TOKEN || github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          echo "## Résultat import issues" >> $GITHUB_STEP_SUMMARY
+          ARGS="--file .github/issues.json"
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            ARGS="$ARGS --force"
+          fi
+          python scripts/import_issues.py $ARGS
+
+      - name: Résumé
+        if: always()
+        run: |
+          echo "## Import issues" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Mode dry_run :** ${{ github.event.inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Issues créées :** ${{ steps.import.outputs.issues-created }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Échecs :** ${{ steps.import.outputs.issues-failed }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **dry_run :** ${{ github.event.inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **force :** ${{ github.event.inputs.force }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-            echo "⚠️ **Dry run** : aucune issue n'a été créée. Relancez avec dry_run = **false**." >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ steps.import.outputs.issues-created }}" = "0" ]; then
-            echo "❌ Aucune issue créée. Vérifiez les permissions Actions (issues: write) dans Settings." >> $GITHUB_STEP_SUMMARY
-            exit 1
+            echo "Mode simulation : consultez les logs de l'étape précédente." >> $GITHUB_STEP_SUMMARY
           else
-            echo "✅ Import terminé. Consultez l'onglet **Issues**." >> $GITHUB_STEP_SUMMARY
+            echo "Consultez l'onglet **Issues** du dépôt." >> $GITHUB_STEP_SUMMARY
           fi
