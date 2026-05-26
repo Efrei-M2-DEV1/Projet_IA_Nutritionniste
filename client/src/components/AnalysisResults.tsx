@@ -54,10 +54,20 @@ const FoodCard = ({ food }: { food: FoodItem }) => (
 );
 
 export const AnalysisResults = ({ result }: AnalysisResultsProps) => {
-  const { foods, nutrition, advice, warnings } = result;
+  const { foods, nutrition, advice, warnings, imageUrl } = result;
 
   return (
     <div className="w-full space-y-4 md:space-y-6 animate-fadeIn">
+      {imageUrl && (
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden border border-orange-100">
+          <img
+            src={imageUrl}
+            alt="Votre assiette"
+            className="w-full max-h-64 object-cover"
+          />
+        </div>
+      )}
+
       {/* En-tête calories */}
       <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-5 md:p-6 border border-orange-100">
         <div className="flex flex-col items-center gap-2">

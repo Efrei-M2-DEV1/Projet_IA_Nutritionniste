@@ -266,10 +266,10 @@ export function ImageUpload({ onImageSelect, isLoading }: ImageUploadProps) {
               </div>
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-2">
-              Analyse en cours...
+              Analyse de votre repas...
             </h3>
             <p className="text-gray-600 text-center">
-              L'IA analyse votre image, veuillez patienter
+              Détection des aliments et estimation nutritionnelle en cours
             </p>
           </div>
         </div>
@@ -287,10 +287,11 @@ export function ImageUpload({ onImageSelect, isLoading }: ImageUploadProps) {
               <span className="text-4xl" style={{marginTop: "-14px"}}>📸</span>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-3">
-              Analysez vos produits
+              Photographiez votre assiette
             </h2>
             <p className="text-gray-600 text-lg">
-              Prenez en photo ou importez une image d'étiquette alimentaire
+              Prenez une photo de votre repas ou importez une image pour obtenir
+              calories, macros et conseils
             </p>
           </div>
 
@@ -435,18 +436,18 @@ export function ImageUpload({ onImageSelect, isLoading }: ImageUploadProps) {
               <span className="text-2xl flex-shrink-0">💡</span>
               <div className="flex-1">
                 <h4 className="font-semibold text-blue-900 mb-2">
-                  Conseils pour une meilleure analyse
+                  Conseils pour une meilleure photo
                 </h4>
                 <ul className="text-sm text-blue-800 space-y-1.5">
                   <li className="flex items-start gap-2">
                     <span className="text-blue-500 mt-0.5">•</span>
                     <span>
-                      Assurez-vous que l'étiquette est bien éclairée et nette
+                      Photographiez l&apos;assiette de dessus, bien éclairée
                     </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-blue-500 mt-0.5">•</span>
-                    <span>Cadrez uniquement la liste des ingrédients</span>
+                    <span>Cadrez l&apos;ensemble du repas visible</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-blue-500 mt-0.5">•</span>
@@ -478,7 +479,7 @@ export function ImageUpload({ onImageSelect, isLoading }: ImageUploadProps) {
             <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4 safe-area-top">
               <div className="flex items-center justify-between">
                 <h3 className="text-white text-lg font-bold">
-                  {isVideoReady ? "📸 Cadrez l'étiquette" : "⏳ Chargement..."}
+                  {isVideoReady ? "📸 Cadrez votre assiette" : "⏳ Chargement..."}
                 </h3>
                 <button
                   onClick={stopCamera}
@@ -543,7 +544,7 @@ export function ImageUpload({ onImageSelect, isLoading }: ImageUploadProps) {
                   <div className="absolute top-20 left-1/2 transform -translate-x-1/2">
                     <div className="bg-black/80 text-white px-6 py-3 rounded-full shadow-2xl backdrop-blur-sm">
                       <p className="text-sm md:text-base font-bold">
-                        📋 Cadrez la liste des ingrédients
+                        🍽️ Cadrez votre assiette
                       </p>
                     </div>
                   </div>

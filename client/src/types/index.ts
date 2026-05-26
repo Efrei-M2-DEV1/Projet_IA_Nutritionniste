@@ -1,4 +1,4 @@
-// ── Nouveaux types — Analyseur de repas par photo ────────────────────────────
+// Types — Nutritionniste IA (analyse de repas par photo)
 
 export interface FoodItem {
   name: string;
@@ -33,33 +33,18 @@ export interface AnalysisResult {
   warnings: string[];
 }
 
-// ── Types legacy (conservés pour compatibilité historique) ───────────────────
-
-export interface IngredientAnalysis {
-  name: string;
-  category: string;
-  explanation: string;
-  riskLevel: "low" | "medium" | "high" | "none";
-}
-  
-
-
 export interface HealthProfile {
   id: string;
   name: string;
-  // Conditions médicales
   diabetes: boolean;
   hypertension: boolean;
   obesity: boolean;
-  // Allergènes à éviter
   allergens: string[];
-  // Régimes alimentaires
   diet: "none" | "vegetarian" | "vegan" | "halal" | "kosher" | "gluten-free";
-  // Préférences
   avoidAdditives: boolean;
   avoidPalmOil: boolean;
-  maxSugar: number; // g/100g
-  maxSalt: number; // g/100g
+  maxSugar: number;
+  maxSalt: number;
 }
 
 export interface PersonalizedWarning {
@@ -68,12 +53,4 @@ export interface PersonalizedWarning {
   title: string;
   message: string;
   ingredient?: string;
-}
-
-// Étendre l'interface existante
-export interface Analysis {
-  // ...propriétés existantes...
-  personalizedWarnings?: PersonalizedWarning[];
-  suitabilityScore?: number; // Score adapté au profil (0-100)
-  profileRecommendation?: string;
 }

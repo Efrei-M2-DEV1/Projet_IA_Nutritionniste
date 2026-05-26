@@ -3,72 +3,72 @@
     {
       "title": "[Équipe] Valider le contrat API POST /api/analyze",
       "body": "## Contexte\nDéfinir et figer le format requête/réponse entre `client/` et `backend/`.\n\n## Responsables\nP1 (Backend) + P4 (Frontend)\n\n## Critères d'acceptation\n- [ ] Documenté dans `docs/PLAN_PROJET_EQUIPE.md` ou `docs/ARCHITECTURE.md`\n- [ ] Types TypeScript alignés (`client/src/types/`)\n- [ ] Schémas Pydantic alignés (`backend/app/models/schemas.py`)\n- [ ] Exemple JSON mock validé par toute l'équipe\n\n## Référence\nSemaine 1 — blocant pour le frontend et le backend.",
-      "labels": ["equipe", "semaine-1", "priorite-haute"]
+      "labels": ["equipe", "priorite-haute"]
     },
     {
       "title": "[Équipe] Choisir la stack IA (vision + nutrition)",
       "body": "## Objectif\nDécider entre option A (HF + LLM), B (API vision unique) ou C (HF + tables).\n\n## Critères d'acceptation\n- [ ] Choix documenté dans le README\n- [ ] Liste des clés API nécessaires (si applicable)\n- [ ] Chacun comprend le pipeline en 2 étapes pour la soutenance\n\n## Référence\n`docs/PLAN_PROJET_EQUIPE.md` section 6",
-      "labels": ["equipe", "semaine-1"]
+      "labels": ["equipe"]
     },
     {
       "title": "[Équipe] Configurer le dépôt GitHub du groupe",
       "body": "## Tâches\n- [ ] Créer le repo groupe\n- [ ] `git remote rename origin upstream` + ajouter `origin`\n- [ ] Branches `main` et `dev`\n- [ ] Inviter les 5 membres\n- [ ] Lancer l'import des issues (workflow Actions)\n\n## Référence\nPhase 0 du plan projet",
-      "labels": ["equipe", "semaine-1"]
+      "labels": ["equipe"]
     },
     {
       "title": "[P1] Initialiser le backend FastAPI",
       "body": "## Mission\nCréer `backend/` et la structure de base.\n\n## Tâches\n- [ ] Dossier `backend/app/` avec `main.py`\n- [ ] CORS configuré pour le client Vite\n- [ ] Health check `GET /health`\n- [ ] `requirements.txt` (fastapi, uvicorn, python-multipart, etc.)\n\n## Fichiers\n`backend/app/main.py`, `backend/requirements.txt`\n\n## Livrable\n`uvicorn` démarre sur le port 8000",
-      "labels": ["P1-backend", "semaine-1"]
+      "labels": ["P1-backend"]
     },
     {
       "title": "[P1] Route POST /api/analyze avec upload image",
       "body": "## Tâches\n- [ ] `UploadFile` multipart\n- [ ] Validation type MIME (jpeg, png, webp)\n- [ ] Limite taille fichier (ex. 5 Mo)\n- [ ] Réception optionnelle `healthProfile` (JSON string)\n\n## Fichiers\n`backend/app/routes/analyze.py`\n\n## Critères d'acceptation\n- [ ] 400 si pas d'image\n- [ ] 413 si fichier trop gros",
-      "labels": ["P1-backend", "semaine-1", "priorite-haute"]
+      "labels": ["P1-backend", "priorite-haute"]
     },
     {
       "title": "[P1] Réponse mock JSON pour le frontend",
       "body": "## Objectif\nPermettre à P4 de développer l'UI sans attendre vision/LLM.\n\n## Critères d'acceptation\n- [ ] Retourne le contrat API complet (`foods`, `nutrition`, `advice`, `warnings`)\n- [ ] Testable via curl / Postman\n- [ ] Documenté dans le README backend\n\n## Dépendance\nBloque l'intégration frontend (S1)",
-      "labels": ["P1-backend", "semaine-1", "priorite-haute"]
+      "labels": ["P1-backend", "priorite-haute"]
     },
     {
       "title": "[P1] Orchestrer vision.py puis nutrition.py",
       "body": "## Tâches\n- [ ] Appeler `detect_foods()` puis `estimate_nutrition()`\n- [ ] Assembler la réponse JSON unifiée\n- [ ] Gestion erreurs si un service échoue\n\n## Fichiers\n`backend/app/routes/analyze.py`\n\n## Dépendances\nIssues P2 et P3 branchées",
-      "labels": ["P1-backend", "semaine-2"]
+      "labels": ["P1-backend"]
     },
     {
       "title": "[P1] Gestion des erreurs HTTP et logs",
       "body": "## Tâches\n- [ ] Codes 400, 413, 500 avec messages clairs\n- [ ] Logs structurés (sans exposer de secrets)\n- [ ] Pas de stack trace brute au client en production\n\n## Fichiers\n`backend/app/` (middleware ou handlers)",
-      "labels": ["P1-backend", "semaine-2"]
+      "labels": ["P1-backend"]
     },
     {
       "title": "[P1] Fichier .env.example et configuration",
       "body": "## Tâches\n- [ ] `.env.example` avec toutes les variables\n- [ ] Chargement via `pydantic-settings` ou équivalent\n- [ ] README : comment lancer le backend\n\n## Important\nNe jamais committer `.env`",
-      "labels": ["P1-backend", "semaine-1", "documentation"]
+      "labels": ["P1-backend", "documentation"]
     },
     {
       "title": "[P2] Choisir et intégrer le modèle de classification food",
       "body": "## Tâches\n- [ ] Comparer 2–3 modèles Hugging Face (food recognition)\n- [ ] Justifier le choix (dataset, taille, précision)\n- [ ] Installer les dépendances dans `requirements.txt`\n\n## Fichiers\n`backend/app/services/vision.py`\n\n## Livrable\n`detect_foods(image_bytes)` fonctionnel",
-      "labels": ["P2-vision", "semaine-2"]
+      "labels": ["P2-vision"]
     },
     {
       "title": "[P2] Pipeline image → inférence → top-k aliments",
       "body": "## Tâches\n- [ ] Préprocessing (resize, normalize)\n- [ ] Inférence avec scores de confiance\n- [ ] Retourner top 3–5 aliments\n\n## Fichiers\n`backend/app/services/vision.py`",
-      "labels": ["P2-vision", "semaine-2"]
+      "labels": ["P2-vision"]
     },
     {
       "title": "[P2] Mapper les labels en français",
       "body": "## Tâches\n- [ ] Fichier `labels_fr.json` ou dict de mapping\n- [ ] Noms lisibles pour l'utilisateur final\n\n## Fichiers\n`backend/app/data/labels_fr.json`",
-      "labels": ["P2-vision", "semaine-2"]
+      "labels": ["P2-vision"]
     },
     {
       "title": "[P2] Gérer les cas limites (confiance faible / rien détecté)",
       "body": "## Tâches\n- [ ] Seuil de confiance configurable\n- [ ] Message explicite si aucun aliment détecté\n- [ ] Ne pas faire planter la route `/api/analyze`\n\n## Fichiers\n`backend/app/services/vision.py`",
-      "labels": ["P2-vision", "semaine-2"]
+      "labels": ["P2-vision"]
     },
     {
       "title": "[P2] Documenter le modèle vision pour la soutenance",
       "body": "## Contenu\n- [ ] Nom du modèle et lien HF\n- [ ] Dataset d'entraînement\n- [ ] Métrique (accuracy top-1 / top-5)\n- [ ] Limites connues (photos floues, plats mixtes)\n\n## Fichiers\n`docs/ARCHITECTURE.md` ou section README",
-      "labels": ["P2-vision", "documentation", "semaine-3"]
+      "labels": ["P2-vision", "documentation"]
     },
     {
       "title": "[P2] (Bonus) Script de test vision avec images exemple",
@@ -78,112 +78,112 @@
     {
       "title": "[P3] Implémenter estimate_nutrition(foods, profile)",
       "body": "## Mission\nÀ partir des aliments détectés + profil santé → macros + conseils.\n\n## Fichiers\n`backend/app/services/nutrition.py`\n\n## Livrable\nFonction branchée dans la route analyze",
-      "labels": ["P3-nutrition", "semaine-3", "priorite-haute"]
+      "labels": ["P3-nutrition", "priorite-haute"]
     },
     {
       "title": "[P3] Prompt LLM structuré (sortie JSON)",
       "body": "## Tâches\n- [ ] Prompt avec format JSON strict\n- [ ] Parsing et validation de la réponse\n- [ ] Gestion JSON invalide\n\n## Fichiers\n`backend/app/services/nutrition.py`",
-      "labels": ["P3-nutrition", "semaine-3"]
+      "labels": ["P3-nutrition"]
     },
     {
       "title": "[P3] Règles métier profil santé (allergies, diabète, régimes)",
       "body": "## Tâches\n- [ ] Allergie détectée → `warnings`\n- [ ] Adaptation conseils diabète / hypertension\n- [ ] Réutiliser l'esprit de l'ancien `HealthProfile` client\n\n## Fichiers\n`backend/app/services/nutrition.py`",
-      "labels": ["P3-nutrition", "semaine-3"]
+      "labels": ["P3-nutrition"]
     },
     {
       "title": "[P3] Sécuriser les clés API côté serveur uniquement",
       "body": "## Critères d'acceptation\n- [ ] Variables dans `.env` backend uniquement\n- [ ] Aucune clé dans `client/`\n- [ ] `.env.example` documenté\n\n## Soutenance\nPréparer la réponse sur la sécurité des clés",
-      "labels": ["P3-nutrition", "semaine-2", "priorite-haute"]
+      "labels": ["P3-nutrition", "priorite-haute"]
     },
     {
       "title": "[P3] Fallback si le LLM est indisponible",
       "body": "## Tâches\n- [ ] Message utilisateur clair\n- [ ] Option : estimation basique via tables nutritionnelles\n- [ ] Code HTTP adapté (503 ou 200 partiel documenté)",
-      "labels": ["P3-nutrition", "semaine-3"]
+      "labels": ["P3-nutrition"]
     },
     {
       "title": "[P4] Adapter les textes UI pour les repas (plus étiquettes)",
       "body": "## Tâches\n- [ ] Titres, boutons, aide : « Photographiez votre assiette »\n- [ ] Supprimer les références OCR / étiquettes / Nutri-Score produit\n\n## Fichiers\n`client/src/App.tsx`, composants UI",
-      "labels": ["P4-frontend", "semaine-1"]
+      "labels": ["P4-frontend"]
     },
     {
       "title": "[P4] Brancher api.ts sur FastAPI (port 8000)",
       "body": "## Tâches\n- [ ] `VITE_API_URL=http://localhost:8000`\n- [ ] `POST /api/analyze` multipart\n- [ ] Envoyer `healthProfile` si actif\n\n## Fichiers\n`client/src/services/api.ts`, `client/.env.example`",
-      "labels": ["P4-frontend", "semaine-1", "priorite-haute"]
+      "labels": ["P4-frontend", "priorite-haute"]
     },
     {
       "title": "[P4] Refondre AnalysisResults (macros, aliments, conseils)",
       "body": "## Tâches\n- [ ] Liste des aliments avec confiance\n- [ ] Tableau nutritionnel (kcal, P, G, L)\n- [ ] Zone conseils + warnings\n- [ ] Supprimer l'affichage liste E-additifs / ingrédients étiquette\n\n## Fichiers\n`client/src/components/AnalysisResults.tsx`",
-      "labels": ["P4-frontend", "semaine-2"]
+      "labels": ["P4-frontend"]
     },
     {
       "title": "[P4] Mettre à jour les types TypeScript (contrat API)",
       "body": "## Fichiers\n`client/src/types/index.ts`\n\n## Critères d'acceptation\n- [ ] Aligné sur le contrat validé avec P1\n- [ ] Plus de champs spécifiques « étiquette » inutiles",
-      "labels": ["P4-frontend", "semaine-1"]
+      "labels": ["P4-frontend"]
     },
     {
       "title": "[P4] États loading, erreurs réseau et backend down",
       "body": "## Tâches\n- [ ] Spinner pendant l'analyse\n- [ ] Message si API injoignable\n- [ ] Message si erreur 4xx/5xx\n\n## Fichiers\n`client/src/App.tsx`, `api.ts`",
-      "labels": ["P4-frontend", "semaine-2"]
+      "labels": ["P4-frontend"]
     },
     {
       "title": "[P4] Adapter l'historique au nouveau format repas",
       "body": "## Fichiers\n`client/src/services/history.ts`, `History.tsx`\n\n## Tâches\n- [ ] Stocker foods + nutrition + advice\n- [ ] Affichage cohérent dans l'historique",
-      "labels": ["P4-frontend", "semaine-3"]
+      "labels": ["P4-frontend"]
     },
     {
       "title": "[P4] Captures d'écran pour la soutenance (backup démo)",
       "body": "## Livrable\n- [ ] 3 captures : upload, résultat, profil santé\n- [ ] Déposées dans `docs/screenshots/` ou dossier équipe",
-      "labels": ["P4-frontend", "semaine-5", "documentation"]
+      "labels": ["P4-frontend", "documentation"]
     },
     {
       "title": "[P5] docker-compose.yml (backend + client)",
       "body": "## Tâches\n- [ ] Service `backend` (FastAPI)\n- [ ] Service `client` (Vite dev ou build nginx)\n- [ ] Variables d'environnement via `.env`\n\n## Critère\n`docker compose up` lance l'application",
-      "labels": ["P5-devops", "semaine-4", "bonus"]
+      "labels": ["P5-devops", "bonus"]
     },
     {
       "title": "[P5] Dockerfiles backend et frontend",
       "body": "## Fichiers\n`backend/Dockerfile`, `client/Dockerfile` (ou racine)\n\n## Bonus\nPoints Docker dans la grille d'évaluation",
-      "labels": ["P5-devops", "semaine-4", "bonus"]
+      "labels": ["P5-devops", "bonus"]
     },
     {
       "title": "[P5] README complet (installation, archi, limites)",
       "body": "## Sections obligatoires\n- [ ] Installation\n- [ ] Configuration `.env`\n- [ ] Lancement local et Docker\n- [ ] Architecture (lien vers ARCHITECTURE.md)\n- [ ] Choix IA et limites du modèle\n- [ ] Équipe et rôles",
-      "labels": ["P5-devops", "documentation", "semaine-4", "priorite-haute"]
+      "labels": ["P5-devops", "documentation", "priorite-haute"]
     },
     {
       "title": "[P5] docs/ARCHITECTURE.md + schéma Mermaid",
       "body": "## Contenu\n- [ ] Schéma flux utilisateur → résultat\n- [ ] Stack technique\n- [ ] Décisions (pourquoi FastAPI, pourquoi 2 modèles)\n\n## Usage\nBase des slides soutenance",
-      "labels": ["P5-devops", "documentation", "semaine-4"]
+      "labels": ["P5-devops", "documentation"]
     },
     {
       "title": "[P5] Mettre à jour .gitignore (.env, Python, modèles)",
       "body": "## Tâches\n- [ ] `.env`, `__pycache__/`, `.venv/`\n- [ ] Modèles HF téléchargés (si volumineux)\n- [ ] `node_modules/` déjà ignoré",
-      "labels": ["P5-devops", "semaine-1"]
+      "labels": ["P5-devops"]
     },
     {
       "title": "[P5] Plan de slides soutenance (5 × 3 min)",
       "body": "## Structure\n- [ ] P1 : intro + archi\n- [ ] P2 : vision\n- [ ] P3 : nutrition/LLM\n- [ ] P4 : démo UI\n- [ ] P5 : Docker + perspectives\n\n## Livrable\nFichier `docs/SOUTENANCE.md` ou slides partagées",
-      "labels": ["P5-devops", "semaine-5", "documentation"]
+      "labels": ["P5-devops", "documentation"]
     },
     {
       "title": "[P5] FAQ technique (questions jury)",
       "body": "## Thèmes\n- [ ] Pourquoi 2 modèles ?\n- [ ] Sécurité clés API\n- [ ] Fiabilité des estimations\n- [ ] Différence avec l'ancien projet étiquettes\n\n## Fichier\n`docs/FAQ_SOUTENANCE.md`",
-      "labels": ["P5-devops", "documentation", "semaine-5"]
+      "labels": ["P5-devops", "documentation"]
     },
     {
       "title": "[Équipe] Archiver server/ Node (branche legacy-node)",
       "body": "## Tâches\n- [ ] Branche `legacy-node` avec l'ancien code\n- [ ] Retirer `server/` de `main` / `dev` (ou marquer deprecated)\n- [ ] Mettre à jour `package.json` racine si besoin\n\n## Note\nNe plus utiliser Express pour le rendu final",
-      "labels": ["equipe", "semaine-2"]
+      "labels": ["equipe"]
     },
     {
       "title": "[Équipe] Test bout en bout — photo de repas complète",
       "body": "## Scénario\n1. Configurer profil santé\n2. Uploader une photo d'assiette\n3. Voir aliments + macros + conseils\n\n## Critères\n- [ ] Fonctionne en local ou Docker\n- [ ] Pas de régression sur mobile (optionnel)\n\n## Semaine\nS4 minimum",
-      "labels": ["equipe", "semaine-4", "priorite-haute"]
+      "labels": ["equipe", "priorite-haute"]
     },
     {
       "title": "[Équipe] Checklist finale avant rendu",
       "body": "## Vérifications\n- [ ] README à jour\n- [ ] Deux briques IA expliquables\n- [ ] Slides prêtes\n- [ ] Captures backup démo\n- [ ] Chaque membre peut expliquer son code\n- [ ] Repo accessible au prof\n\n## Référence\n`docs/PLAN_PROJET_EQUIPE.md` section 12",
-      "labels": ["equipe", "semaine-5", "priorite-haute"]
+      "labels": ["equipe", "priorite-haute"]
     },
     {
       "title": "[Bonus] Journal nutritionnel du jour (localStorage)",
