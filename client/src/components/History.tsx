@@ -1,4 +1,5 @@
 import type { AnalysisResult } from '../types';
+import type { FoodItem } from '../types';
 import { removeFromHistory } from '../services/history';
 
 interface HistoryProps {
@@ -48,15 +49,8 @@ export const History = ({ history, onSelectResult, onClearHistory }: HistoryProp
             className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-md p-5 md:p-5 border border-orange-100 active:shadow-lg active:border-orange-300 transition-all cursor-pointer touch-manipulation"
           >
             <div className="flex items-start justify-between mb-3">
-              <div className={`
-                w-14 h-14 md:w-12 md:h-12 rounded-full flex items-center justify-center text-2xl md:text-xl font-bold border-2
-                ${result.grade === 'A' ? 'bg-green-100 text-green-800 border-green-300' :
-                  result.grade === 'B' ? 'bg-blue-100 text-blue-800 border-blue-300' :
-                  result.grade === 'C' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
-                  result.grade === 'D' ? 'bg-orange-100 text-orange-800 border-orange-300' :
-                  'bg-red-100 text-red-800 border-red-300'}
-              `}>
-                {result.grade}
+              <div className="w-14 h-14 md:w-12 md:h-12 rounded-full flex items-center justify-center text-xl md:text-lg font-bold border-2 bg-orange-100 text-orange-700 border-orange-300">
+                🥗
               </div>
               <button
                 onClick={(e) => handleDelete(result.id, e)}
@@ -71,7 +65,7 @@ export const History = ({ history, onSelectResult, onClearHistory }: HistoryProp
             
             <div className="space-y-2">
               <p className="text-base md:text-sm font-semibold text-gray-800">
-                Note: {result.score}/100
+                {Math.round(result.nutrition.calories_kcal)} kcal
               </p>
               <p className="text-xs text-gray-500">
                 {new Date(result.timestamp).toLocaleDateString('fr-FR', {
@@ -83,11 +77,11 @@ export const History = ({ history, onSelectResult, onClearHistory }: HistoryProp
                 })}
               </p>
               <p className="text-sm md:text-xs text-gray-600 line-clamp-2 mt-2 leading-relaxed">
-                {result.extractedText.substring(0, 100)}...
+                {result.foods.map((f: FoodItem) => f.name).join(', ')}
               </p>
               <div className="flex gap-2 mt-3">
                 <span className="text-xs px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg font-medium">
-                  {result.ingredients.length} ingrédients
+                  {result.foods.length} aliment{result.foods.length > 1 ? 's' : ''}
                 </span>
               </div>
             </div>

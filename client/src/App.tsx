@@ -4,7 +4,6 @@ import { HealthProfileSetup } from "./components/HealthProfileSetup";
 import { Help } from "./components/Help";
 import { History } from "./components/History";
 import { ImageUpload } from "./components/ImageUpload";
-import { PersonalizedAlerts } from "./components/PersonalizedAlerts";
 import { analyzeImage } from "./services/api";
 import { hasActiveProfile, loadHealthProfile } from "./services/healthProfile";
 import { clearHistory, getHistory, saveToHistory } from "./services/history";
@@ -34,77 +33,21 @@ function App() {
     if (existingHistory.length === 0) {
       const exampleResult: AnalysisResult = {
         id: "example-1",
-        timestamp: Date.now() - 86400000, // Il y a 1 jour
-        extractedText:
-          "Eau, Sucre, Farine de blé, Huile de palme, Levure, Sel, Conservateur E202, Émulsifiant E471, Agent de traitement de la farine E300",
-        ingredients: [
-          {
-            name: "Eau",
-            category: "other",
-            explanation: "Ingrédient de base, aucun risque particulier.",
-            riskLevel: "none",
-          },
-          {
-            name: "Sucre",
-            category: "other",
-            explanation:
-              "Consommé avec modération, peut contribuer à l'obésité et au diabète.",
-            riskLevel: "low",
-          },
-          {
-            name: "Farine de blé",
-            category: "allergen",
-            explanation:
-              "Contient du gluten. Allergène majeur pour les personnes intolérantes.",
-            riskLevel: "high",
-          },
-          {
-            name: "Huile de palme",
-            category: "other",
-            explanation:
-              "Riche en acides gras saturés. Impact environnemental controversé.",
-            riskLevel: "medium",
-          },
-          {
-            name: "Conservateur E202",
-            category: "preservative",
-            explanation:
-              "Sorbate de potassium. Généralement considéré comme sûr, mais peut causer des irritations chez certaines personnes sensibles.",
-            riskLevel: "low",
-          },
-          {
-            name: "Émulsifiant E471",
-            category: "additive",
-            explanation:
-              "Mono et diglycérides d'acides gras. Additif alimentaire courant, généralement bien toléré.",
-            riskLevel: "low",
-          },
-          {
-            name: "Agent de traitement E300",
-            category: "additive",
-            explanation:
-              "Acide ascorbique (vitamine C). Utilisé comme antioxydant, sans risque connu.",
-            riskLevel: "none",
-          },
+        timestamp: Date.now() - 86400000,
+        foods: [
+          { name: "Poulet grillé", confidence: 0.87, portion_estimate: "moyenne" },
+          { name: "Riz", confidence: 0.75, portion_estimate: "petite" },
+          { name: "Salade verte", confidence: 0.62, portion_estimate: "grande" },
         ],
-        score: 65,
-        grade: "C",
-        summary: {
-          positives: [
-            "Contient des ingrédients naturels comme l'eau et la farine de blé.",
-            "Utilisation d'agent de traitement naturel (E300).",
-          ],
-          warnings: [
-            "Présence de sucre ajouté pouvant affecter la santé métabolique.",
-            "Contient du gluten, allergène majeur pour certaines personnes.",
-            "Utilisation d'huile de palme, à consommer avec modération.",
-          ],
-          recommendations: [
-            "Réduire la quantité de sucre pour une meilleure santé.",
-            "Considérer des alternatives à l'huile de palme.",
-            "Vérifier les allergies au gluten avant consommation.",
-          ],
+        nutrition: {
+          calories_kcal: 520,
+          protein_g: 35,
+          carbs_g: 40,
+          fat_g: 18,
+          fiber_g: 5,
         },
+        advice: "Repas équilibré riche en protéines. Pensez à bien vous hydrater.",
+        warnings: [],
       };
       saveToHistory(exampleResult);
       setHistory([exampleResult]);
@@ -123,21 +66,14 @@ function App() {
       const apiResponse = await analyzeImage(file);
 
       console.log("📦 Réponse API complète:", apiResponse);
-      console.log("📋 Summary reçu:", apiResponse.analysis.summary);
 
-     
-
-      // Transformer ApiResponse en AnalysisResult
       const result: AnalysisResult = {
         id: `analysis-${Date.now()}`,
         timestamp: Date.now(),
-        extractedText: apiResponse.extractedText,
-        ingredients: apiResponse.analysis.ingredients,
-        score: apiResponse.analysis.score,
-        grade: apiResponse.analysis.grade,
-        summary: apiResponse.analysis.summary,
-        // 🆕 Inclure les données personnalisées si présentes
-        
+        foods: apiResponse.foods,
+        nutrition: apiResponse.nutrition,
+        advice: apiResponse.advice,
+        warnings: apiResponse.warnings,
       };
 
       setAnalysisResult(result);
@@ -377,17 +313,7 @@ function App() {
               </button>
             </div>
 
-            {/* 🆕 Alertes personnalisées (si profil actif) - Mobile & Desktop */}
-            {analysisResult.personalizedWarnings &&
-              analysisResult.personalizedWarnings.length > 0 && (
-                <PersonalizedAlerts
-                  warnings={analysisResult.personalizedWarnings}
-                  suitabilityScore={analysisResult.suitabilityScore || 0}
-                  recommendation={analysisResult.profileRecommendation || ""}
-                />
-              )}
-
-            {/* Résultats normaux */}
+            {/* Résultats */}
             <AnalysisResults result={analysisResult} />
           </div>
         )}

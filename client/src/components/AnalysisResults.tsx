@@ -53,67 +53,6 @@ const FoodCard = ({ food }: { food: FoodItem }) => (
   </div>
 );
 
-const getGradeColor = (grade: string) => {
-  switch (grade) {
-    case 'A':
-      return 'bg-green-100 text-green-800 border-green-300';
-    case 'B':
-      return 'bg-blue-100 text-blue-800 border-blue-300';
-    case 'C':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-    case 'D':
-      return 'bg-orange-100 text-orange-800 border-orange-300';
-    case 'E':
-      return 'bg-red-100 text-red-800 border-red-300';
-    default:
-      return 'bg-gray-100 text-gray-800 border-gray-300';
-  }
-};
-
-const getRiskColor = (risk: string) => {
-  switch (risk) {
-    case 'high':
-      return 'bg-red-100 text-red-800 border-red-300';
-    case 'medium':
-      return 'bg-orange-100 text-orange-800 border-orange-300';
-    case 'low':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-    case 'none':
-      return 'bg-green-100 text-green-800 border-green-300';
-    default:
-      return 'bg-gray-100 text-gray-800 border-gray-300';
-  }
-};
-
-const getCategoryLabel = (category: string) => {
-  const labels: Record<string, string> = {
-    allergen: 'Allergène',
-    preservative: 'Conservateur',
-    additive: 'Additif',
-    irritant: 'Irritant',
-    beneficial: 'Bénéfique',
-    other: 'Autre',
-  };
-  return labels[category] || category;
-};
-
-const getCategoryIcon = (category: string) => {
-  switch (category) {
-    case 'allergen':
-      return '⚠️';
-    case 'preservative':
-      return '🧪';
-    case 'additive':
-      return '⚗️';
-    case 'irritant':
-      return '🔴';
-    case 'beneficial':
-      return '✅';
-    default:
-      return 'ℹ️';
-  }
-};
-
 export const AnalysisResults = ({ result }: AnalysisResultsProps) => {
   const { foods, nutrition, advice, warnings } = result;
 
